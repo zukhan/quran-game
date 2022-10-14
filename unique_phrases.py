@@ -10,14 +10,14 @@ in the unique phrases.
 Usage: python3 unique_phrases.py
 """
 
-MIN_WORDS = 2
+MIN_WORDS = 1
 
 with open('quran-simple-plain.txt', encoding='utf_8') as file:
     ayahs = [l.rstrip() for l in file if l.rstrip() and not l.startswith("#")]
 
 ayah_num_to_phrases = {}
 phrase_to_ayah_num = {}
-non_uniq_phrases = set()
+non_unique_phrases = set()
 
 # We are not currently going beyond the ayah boundaries
 def unique_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
@@ -54,12 +54,12 @@ for ayah in ayahs:
 
     for ayah_phrase in ayah_phrases:
         if ayah_phrase in phrase_to_ayah_num:
-            non_uniq_phrases.add(ayah_phrase)
+            non_unique_phrases.add(ayah_phrase)
         else:
             phrase_to_ayah_num[ayah_phrase] = surah_num + ":" + ayah_num
 
 # Remove duplicates
-for non_uniq_phrase in non_uniq_phrases:
+for non_uniq_phrase in non_unique_phrases:
     del phrase_to_ayah_num[non_uniq_phrase]
 
 # Build a reverse index of unique phrases by ayah number
@@ -78,7 +78,16 @@ for phrases in ayah_num_to_phrases.values():
         if len(phrase.split(" ")) != min_phrase_words:
             phrases.remove(phrase)
 
-# Just for testing, show the unique phrases for a specific ayah
-for ayah_num, phrases in ayah_num_to_phrases.items():
-    if ayah_num.split(":")[0] == "78":
-        print(ayah_num + ":", phrases)
+# Write the output to a file
+with open('min-one-word-phrases.txt', 'w', encoding='utf-8') as file:
+    old_surah_num = 0
+    for ayah_num, phrases in ayah_num_to_phrases.items():
+        new_surah_num = ayah_num.split(':')[0]
+        if new_surah_num != old_surah_num:
+            file.write('\n')
+            file.write('Surah ' + new_surah_num + ':\n')
+            file.write('\n')
+            old_surah_num = new_surah_num
+
+        file.write(ayah_num + ' - ' + str(phrases))
+        file.write('\n')
