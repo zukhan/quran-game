@@ -20,7 +20,7 @@ else:
 
 def write_unique_phrases_to_file():
     # Write the output to a file (make sure to update MIN_WORDS constant)
-    with open('min-three-word-phrases.txt', 'w', encoding='utf-8') as file:
+    with open('output/min-three-word-phrases.txt', 'w', encoding='utf-8') as file:
         old_surah_num = 0
         for ayah_num, phrases in ayah_num_to_phrases.items():
             new_surah_num = ayah_num.split(':')[0]
