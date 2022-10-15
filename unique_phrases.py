@@ -94,7 +94,7 @@ def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
 
     cache.add(cache_key)
 
-with open('quran-simple-plain.txt', encoding='utf_8') as file:
+with open('resources/quran-simple-plain.txt', encoding='utf_8') as file:
     ayahs = [l.rstrip() for l in file if l.rstrip() and not l.startswith("#")]
 
 ayah_num_to_phrases = {}
