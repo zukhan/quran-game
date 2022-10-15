@@ -18,20 +18,6 @@ if sys.argv[1]:
 else:
     MIN_WORDS = 3
 
-def write_unique_phrases_to_file():
-    # Write the output to a file (make sure to update MIN_WORDS constant)
-    with open('output/min-three-word-phrases.txt', 'w', encoding='utf-8') as file:
-        old_surah_num = 0
-        for ayah_num, phrases in ayah_num_to_phrases.items():
-            new_surah_num = ayah_num.split(':')[0]
-            if new_surah_num != old_surah_num:
-                file.write('\n')
-                file.write('Surah ' + new_surah_num + ':\n')
-                file.write('\n')
-                old_surah_num = new_surah_num
-
-            file.write(ayah_num + ' - ' + str(phrases))
-            file.write('\n')
 
 # To play the game, run the following command from the command line:
 #
@@ -71,6 +57,23 @@ def guess_the_surah():
         else:
             print("Correct!\n")
 
+
+def write_unique_phrases_to_file():
+    # Write the output to a file (make sure to update MIN_WORDS constant)
+    with open('output/min-three-word-phrases.txt', 'w', encoding='utf-8') as file:
+        old_surah_num = 0
+        for ayah_num, phrases in ayah_num_to_phrases.items():
+            new_surah_num = ayah_num.split(':')[0]
+            if new_surah_num != old_surah_num:
+                file.write('\n')
+                file.write('Surah ' + new_surah_num + ':\n')
+                file.write('\n')
+                old_surah_num = new_surah_num
+
+            file.write(ayah_num + ' - ' + str(phrases))
+            file.write('\n')
+
+
 # We are not currently going beyond the ayah boundaries
 def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
     cache_key = cur_phrase + str(word_idx)
@@ -93,6 +96,7 @@ def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
     populate_phrases(ayah_words, word_idx + 1, ayah_phrases, cur_word, cache)
 
     cache.add(cache_key)
+
 
 with open('resources/quran-simple-plain.txt', encoding='utf_8') as file:
     ayahs = [l.rstrip() for l in file if l.rstrip() and not l.startswith("#")]
