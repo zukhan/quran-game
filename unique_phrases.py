@@ -10,17 +10,41 @@ in the unique phrases.
 Usage: python3 unique_phrases.py
 """
 
-MIN_WORDS = 1
+import random
 
-with open('quran-simple-plain.txt', encoding='utf_8') as file:
-    ayahs = [l.rstrip() for l in file if l.rstrip() and not l.startswith("#")]
+MIN_WORDS = 3
 
-ayah_num_to_phrases = {}
-phrase_to_ayah_num = {}
-non_unique_phrases = set()
+def write_unique_phrases_to_file():
+    # Write the output to a file (make sure to update MIN_WORDS constant)
+    with open('min-three-word-phrases.txt', 'w', encoding='utf-8') as file:
+        old_surah_num = 0
+        for ayah_num, phrases in ayah_num_to_phrases.items():
+            new_surah_num = ayah_num.split(':')[0]
+            if new_surah_num != old_surah_num:
+                file.write('\n')
+                file.write('Surah ' + new_surah_num + ':\n')
+                file.write('\n')
+                old_surah_num = new_surah_num
+
+            file.write(ayah_num + ' - ' + str(phrases))
+            file.write('\n')
+
+def guess_the_surah():
+    while True:
+        phrase, ayah_num = random.choice(list(phrase_to_ayah_num.items()))
+        surah_num = ayah_num.split(':')[0]
+
+        guess = input("Which surah is this phrase from? " + phrase + '\n').strip()
+        while guess != surah_num and guess != "skip":
+            guess = input("Incorrect, try again: ").strip()
+
+        if guess == "skip":
+            print("Answer was '" + surah_num + "'\n")
+        else:
+            print("Correct!\n")
 
 # We are not currently going beyond the ayah boundaries
-def unique_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
+def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
     cache_key = cur_phrase + str(word_idx)
     if cache_key in cache:
         return
@@ -36,11 +60,18 @@ def unique_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
     new_phrase = cur_phrase + " " + cur_word
 
     # Append the current word to the phrase
-    unique_phrases(ayah_words, word_idx + 1, ayah_phrases, new_phrase, cache)
+    populate_phrases(ayah_words, word_idx + 1, ayah_phrases, new_phrase, cache)
     # Start a new phrase with current word as the beginning of the phrase
-    unique_phrases(ayah_words, word_idx + 1, ayah_phrases, cur_word, cache)
+    populate_phrases(ayah_words, word_idx + 1, ayah_phrases, cur_word, cache)
 
     cache.add(cache_key)
+
+with open('quran-simple-plain.txt', encoding='utf_8') as file:
+    ayahs = [l.rstrip() for l in file if l.rstrip() and not l.startswith("#")]
+
+ayah_num_to_phrases = {}
+phrase_to_ayah_num = {}
+non_unique_phrases = set()
 
 # 'ayah' has the following format:
 # "1|2| الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"
@@ -50,7 +81,7 @@ for ayah in ayahs:
     ayah_num = tokens[0].split('|')[1]
 
     ayah_phrases = set()
-    unique_phrases(tokens, 1, ayah_phrases, "", set())
+    populate_phrases(tokens, 1, ayah_phrases, "", set())
 
     for ayah_phrase in ayah_phrases:
         if ayah_phrase in phrase_to_ayah_num:
@@ -77,17 +108,8 @@ for phrases in ayah_num_to_phrases.values():
     for phrase in phrases.copy():
         if len(phrase.split(" ")) != min_phrase_words:
             phrases.remove(phrase)
+            del phrase_to_ayah_num[phrase]
 
-# Write the output to a file
-with open('min-one-word-phrases.txt', 'w', encoding='utf-8') as file:
-    old_surah_num = 0
-    for ayah_num, phrases in ayah_num_to_phrases.items():
-        new_surah_num = ayah_num.split(':')[0]
-        if new_surah_num != old_surah_num:
-            file.write('\n')
-            file.write('Surah ' + new_surah_num + ':\n')
-            file.write('\n')
-            old_surah_num = new_surah_num
+# write_unique_phrases_to_file()
 
-        file.write(ayah_num + ' - ' + str(phrases))
-        file.write('\n')
+guess_the_surah()
