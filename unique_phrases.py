@@ -11,8 +11,12 @@ Usage: python3 unique_phrases.py
 """
 
 import random
+import sys
 
-MIN_WORDS = 3
+if sys.argv[1]:
+    MIN_WORDS = int(sys.argv[1])
+else:
+    MIN_WORDS = 3
 
 def write_unique_phrases_to_file():
     # Write the output to a file (make sure to update MIN_WORDS constant)
@@ -29,12 +33,36 @@ def write_unique_phrases_to_file():
             file.write(ayah_num + ' - ' + str(phrases))
             file.write('\n')
 
+# To play the game, run the following command from the command line:
+#
+#   $ python3 unique_phrases.py <min_word_phrase> <start_surah> <end_surah>
+#
+# min_word_phrase - (optional, default 3) minimum words in the unique phrase
+# start_surah - (optional, default 0) starting surah number
+# end_surah - (optional, default 114) ending surah number
+#
+# For example, if you want at least 3 words in the unique phrases starting
+# from surah 78, run:
+#
+#   $ python3 unique_phrases.py 3 78
 def guess_the_surah():
     while True:
         phrase, ayah_num = random.choice(list(phrase_to_ayah_num.items()))
         surah_num = ayah_num.split(':')[0]
 
+        start_surah = 0
+        end_surah = 114
+
+        if len(sys.argv) > 2:
+            start_surah = int(sys.argv[2])
+        if len(sys.argv) > 3:
+            end_surah = int(sys.argv[3])
+
+        if int(surah_num) < start_surah or int(surah_num) > end_surah:
+            continue
+
         guess = input("Which surah is this phrase from? " + phrase + '\n').strip()
+
         while guess != surah_num and guess != "skip":
             guess = input("Incorrect, try again: ").strip()
 
@@ -109,7 +137,5 @@ for phrases in ayah_num_to_phrases.values():
         if len(phrase.split(" ")) != min_phrase_words:
             phrases.remove(phrase)
             del phrase_to_ayah_num[phrase]
-
-# write_unique_phrases_to_file()
 
 guess_the_surah()
