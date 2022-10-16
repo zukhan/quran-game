@@ -20,6 +20,7 @@ surah 78 until surah 90, run:
 
 Actions:
 
+    "help" - see available actions with descriptions
     "hint" - adds an additional word to the phrase to make it easier to guess
     "skip" - displays the answer and moves onto the next phrase
 
@@ -89,35 +90,54 @@ def add_word_to_phrase(phrase, phrase_with_hint):
     return phrase_with_hint
 
 
+def print_help_message():
+    print(
+'''
+Available actions:
+    "help" - see available actions with descriptions
+    "hint" - adds an additional word to the phrase to make it easier to guess
+    "skip" - displays the answer and moves onto the next phrase
+'''
+    )
+
 #
 # The main loop that runs the game and processes the user's input
 #
 def guess_the_surah():
+    start_surah = 0
+    end_surah = 114
+
+    if len(sys.argv) > 2:
+        start_surah = int(sys.argv[2])
+    if len(sys.argv) > 3:
+        end_surah = int(sys.argv[3])
+
     while True:
-        start_surah = 0
-        end_surah = 114
-
-        if len(sys.argv) > 2:
-            start_surah = int(sys.argv[2])
-        if len(sys.argv) > 3:
-            end_surah = int(sys.argv[3])
-
         surah_num = random.randint(start_surah, end_surah)
         phrase = random.choice(list(surah_num_to_phrases[surah_num]))
 
         guess = input('\nWhich surah is this phrase from? ' + phrase + '\n> ').strip()
 
         phrase_with_hint = phrase
-        while guess != str(surah_num) and guess != 'skip':
-            if guess == 'hint':
+        num_incorrect = 0
+        while guess != str(surah_num):
+            if guess == 'help':
+                print_help_message()
+            elif guess == 'hint':
                 phrase_with_hint = add_word_to_phrase(phrase, phrase_with_hint)
-                guess = input(phrase_with_hint + '\n> ').strip()
+            elif guess == 'skip':
+                print('The phrase was from surah ' + str(surah_num))
+                break
             else:
-                guess = input('Incorrect, try again: \n> ').strip()
+                num_incorrect += 1
+                if num_incorrect > 2:
+                    print("Incorrect, try again. Type 'hint' to add a word to the phrase.")
+                else:
+                    print('Incorrect, try again.')
 
-        if guess == 'skip':
-            print('The phrase was from surah ' + str(surah_num))
-        else:
+            guess = input(phrase_with_hint + '\n> ').strip()
+
+        if guess == str(surah_num):
             print('Correct!')
 
 
