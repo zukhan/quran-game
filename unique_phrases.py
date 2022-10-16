@@ -1,13 +1,25 @@
 '''
-Finds minimum length unique phrases in the Qur'an and indexes them by ayah 
-number. Can be extended and used to quiz yourself by displaying a random unique
-phrase and having to continue reciting from there (and guess which surah it's
-from). 
+'Guess the Surah' Game
 
-MIN_WORDS constant can be used to set the minimum number of words you would like
-in the unique phrases.
+Displays a unique phrase from the Qur'an and asks you to guess which surah the
+phrase is from. You can control minimum number of words that the unique phrase
+should have (fewer the words, more challenging it is) and also the starting and
+ending surahs that you would like to be tested on. To play, run the following
+command from the command line:
 
-Usage: python3 unique_phrases.py
+    $ python3 unique_phrases.py <min_words_in_phrase> <start_surah> <end_surah>
+
+<min_words_in_phrase> - (optional, default 3) minimum words in the unique phrase
+<start_surah> - (optional, default 0) starting surah number
+<end_surah> - (optional, default 114) ending surah number
+
+For example, if you want at least 2 words in the unique phrases starting from
+surah 78 until surah 90, run:
+
+    $ python3 unique_phrases.py 3 78 90
+
+NOTE: The Arabic text does not display properly in the console so copy and paste
+it into a separate text editor (e.g. TextEdit)
 '''
 
 import random
@@ -17,28 +29,27 @@ MIN_WORDS = 3
 if sys.argv[1]:
     MIN_WORDS = int(sys.argv[1])
 
+# { 1: (1:1, 2:141), 2: (2:142, 2:252), ... }
 juz_num_to_ayah_range = {}
+
+# { 1: {"2:30": "الْعَالَمِينَ", "2:100": "الْحَمْدُ", ...}, ... }
 juz_num_to_ayah_phrases = {}
+
+# { 110: ["الْعَالَمِينَ", "الْحَمْدُ"], 111: ["كَفَيْنَاكَ"] }
 surah_num_to_phrases = {}
+
+# { "الْعَالَمِينَ": "2:30", "الْحَمْدُ": "2:100" }
 phrase_to_ayah_num = {}
+
+# ["مِنْ", "إِنَّ اللَّهَ"]
 non_unique_phrases = set()
 
 
-# To play the game, run the following command from the command line:
 #
-#   $ python3 unique_phrases.py <min_word_phrase> <start_surah> <end_surah>
+# The main loop that runs the game and processes the user's input
 #
-# min_word_phrase - (optional, default 3) minimum words in the unique phrase
-# start_surah - (optional, default 0) starting surah number
-# end_surah - (optional, default 114) ending surah number
-#
-# For example, if you want at least 3 words in the unique phrases starting
-# from surah 78, run:
-#
-#   $ python3 unique_phrases.py 3 78
 def guess_the_surah():
     while True:
-
         start_surah = 0
         end_surah = 114
 
@@ -56,29 +67,19 @@ def guess_the_surah():
             guess = input('Incorrect, try again: ').strip()
 
         if guess == 'skip':
-            print('Answer was '' + surah_num + ''\n')
+            print('Answer was "' + str(surah_num) + '"\n')
         else:
             print('Correct!\n')
 
 
-def write_unique_phrases_to_file():
-    # Write the output to a file (make sure to update MIN_WORDS constant)
-    with open('output/min-three-word-phrases.txt', 'w', encoding='utf-8') as file:
-        old_surah_num = 0
-        for ayah_num_to_phrases in juz_num_to_ayah_phrases.values():
-            for ayah_num, phrases in ayah_num_to_phrases.items():
-                new_surah_num = ayah_num.split(':')[0]
-                if new_surah_num != old_surah_num:
-                    file.write('\n')
-                    file.write('Surah ' + new_surah_num + ':\n')
-                    file.write('\n')
-                    old_surah_num = new_surah_num
-
-                file.write(ayah_num + ' - ' + str(phrases))
-                file.write('\n')
-
-
-# We are not currently going beyond the ayah boundaries
+#
+# For a given ayah, this function populates the 'ayah_phrases' set with all of
+# the phrases in that ayah that are at least MIN_WORDS long. To take an English
+# example, for the sentence, "I am Sherlock Holmes", after this method executes
+# with MIN_WORDS set to 2, 'ayah_phrases' will be populated with the following
+# phrases: ["I am", "I am Sherlock", "I am Sherlock Holmes", "am Sherlock",
+# "am Sherlock Holmes", "Sherlock Holmes"]
+#
 def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
     cache_key = cur_phrase + str(word_idx)
     if cache_key in cache:
@@ -102,6 +103,10 @@ def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
     cache.add(cache_key)
 
 
+#
+# This function populates the map which defines the juz boundaries (starting
+# and ending ayahs).
+#
 def populate_juz_maps():
     with open('resources/juz_boundaries.csv') as file:
         for line in file:
@@ -111,13 +116,16 @@ def populate_juz_maps():
 
             juz_num_to_ayah_range[juz_num] = (ayah_range[0], ayah_range[1])
 
-# ayah_range is a tuple, e.g. (2:52, 3:20)
-# target_ayah_num has the format '2:52'
+#
+# Given an 'ayah_range' tuple (e.g. '(2:52, 3:20)') and a 'target_ayah_num'
+# (e.g. '2:52'), this function determines whether the target_ayah_num is less
+# than the ayah_range, within the ayah_range, or greater than the ayah_range.
 #
 # Returns:
-# -1 if the target ayah is less than the range
-# 0 if the target ayah is within the range
-# 1 if the target ayah is greater than the range
+#   -1 if the target ayah is less than the range
+#   0 if the target ayah is within the range
+#   1 if the target ayah is greater than the range
+#
 def compare_ayah(ayah_range, target_ayah_num):
     (start_ayah, end_ayah) = ayah_range
     surah_num = int(target_ayah_num.split(':')[0])
@@ -164,6 +172,10 @@ def compare_ayah(ayah_range, target_ayah_num):
     raise Exception('There is a bug in the compare_ayah logic')
 
 
+#
+# Given an ayah_num (e.g. '2:210'), this function finds and returns the number
+# of the juz that the ayah resides in.
+#
 def find_juz_num(ayah_num):
     start_idx = 1
     end_idx = 30
@@ -182,6 +194,11 @@ def find_juz_num(ayah_num):
     raise Exception('There is a bug in the find_juz_num logic')
 
 
+#
+# This function reads the entire Qur'an from a file and finds the minimal length
+# unique phrases for each ayah and builds up lookup index maps based on various
+# parameters (e.g. by juz number, surah number, ayah number, etc.)
+#
 def parse_quran():
     with open('resources/quran-simple-plain.txt', encoding='utf_8') as file:
         ayahs = [l.rstrip() for l in file if l.rstrip() and not l.startswith('#')]
