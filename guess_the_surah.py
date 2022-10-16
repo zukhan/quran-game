@@ -24,10 +24,12 @@ Actions:
     "hint" - adds an additional word to the phrase to make it easier to guess
     "skip" - displays the answer and moves onto the next phrase
 
-NOTE: The Arabic text does not display properly in the console so copy and paste
-it into a separate text editor (e.g. TextEdit)
+NOTE: The Arabic text does not display properly in the console. I've made it so
+that the Arabic phrase is automatically copied to Mac OS clipboard so you just 
+need to paste it into another text editor like TextEdit (no need to copy it).
 '''
 
+import subprocess
 import random
 import sys
 
@@ -116,6 +118,7 @@ def guess_the_surah():
         surah_num = random.randint(start_surah, end_surah)
         phrase = random.choice(list(surah_num_to_phrases[surah_num]))
 
+        subprocess.run("pbcopy", universal_newlines=True, input=phrase)
         guess = input('\nWhich surah is this phrase from? ' + phrase + '\n> ').strip()
 
         phrase_with_hint = phrase
@@ -135,6 +138,7 @@ def guess_the_surah():
                 else:
                     print('Incorrect, try again.')
 
+            subprocess.run("pbcopy", universal_newlines=True, input=phrase_with_hint)
             guess = input(phrase_with_hint + '\n> ').strip()
 
         if guess == str(surah_num):
