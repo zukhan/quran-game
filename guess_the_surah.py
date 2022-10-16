@@ -18,6 +18,11 @@ surah 78 until surah 90, run:
 
     $ python3 guess_the_surah.py 3 78 90
 
+Actions:
+
+    "hint" - adds an additional word to the phrase to make it easier to guess
+    "skip" - displays the answer and moves onto the next phrase
+
 NOTE: The Arabic text does not display properly in the console so copy and paste
 it into a separate text editor (e.g. TextEdit)
 '''
@@ -44,6 +49,33 @@ phrase_to_ayah_num = {}
 # ['مِنْ', 'إِنَّ اللَّهَ']
 non_unique_phrases = set()
 
+# { '1:3': 'الرَّحْمَـٰنِ الرَّحِيمِ' }
+ayah_num_to_ayah = {}
+
+
+#
+# Prefixes an additional word to the phrase unless already at the beginning of
+# the ayah.
+#
+def add_word_to_phrase(phrase, phrase_with_hint):
+    ayah_num = phrase_to_ayah_num[phrase]
+    ayah = ayah_num_to_ayah[ayah_num]
+
+    ayah_words = ayah.split(' ')
+    phrase_words = phrase_with_hint.split(' ')
+
+    word_idx = 0
+    while word_idx < len(ayah_words):
+        if ayah_words[word_idx] == phrase_words[0]:
+            break
+        word_idx += 1
+
+    if word_idx == 0:
+        print('Already at the beginning of the ayah!')
+        return phrase_with_hint
+
+    return ayah_words[word_idx - 1] + ' ' + phrase_with_hint
+
 
 #
 # The main loop that runs the game and processes the user's input
@@ -61,10 +93,15 @@ def guess_the_surah():
         surah_num = random.randint(start_surah, end_surah)
         phrase = random.choice(list(surah_num_to_phrases[surah_num]))
 
-        guess = input('Which surah is this phrase from? ' + phrase + '\n').strip()
+        guess = input('Which surah is this phrase from? ' + phrase + '\n> ').strip()
 
+        phrase_with_hint = phrase
         while guess != str(surah_num) and guess != 'skip':
-            guess = input('Incorrect, try again: ').strip()
+            if guess == 'hint':
+                phrase_with_hint = add_word_to_phrase(phrase, phrase_with_hint)
+                guess = input(phrase_with_hint + '\n> ').strip()
+            else:
+                guess = input('Incorrect, try again: \n> ').strip()
 
         if guess == 'skip':
             print('Answer was "' + str(surah_num) + '"\n')
@@ -209,6 +246,9 @@ def parse_quran():
         tokens = ayah.split(' ')
         surah_num = tokens[0].split('|')[0]
         ayah_num = tokens[0].split('|')[1]
+        surah_ayah_num = surah_num + ':' + ayah_num
+
+        ayah_num_to_ayah[surah_ayah_num] = ayah.split('|')[2].strip()
 
         ayah_phrases = set()
         populate_phrases(tokens, 1, ayah_phrases, '', set())
@@ -217,7 +257,7 @@ def parse_quran():
             if ayah_phrase in phrase_to_ayah_num:
                 non_unique_phrases.add(ayah_phrase)
             else:
-                phrase_to_ayah_num[ayah_phrase] = surah_num + ':' + ayah_num
+                phrase_to_ayah_num[ayah_phrase] = surah_ayah_num
 
     # Remove duplicates
     for non_uniq_phrase in non_unique_phrases:
