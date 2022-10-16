@@ -54,8 +54,9 @@ ayah_num_to_ayah = {}
 
 
 #
-# Prefixes an additional word to the phrase unless already at the beginning of
-# the ayah.
+# Prefixes an additional word to the phrase until it gets to the beginning of
+# the ayah, and then it starts appending words to the phrase until the whole
+# ayah is complete.
 #
 def add_word_to_phrase(phrase, phrase_with_hint):
     ayah_num = phrase_to_ayah_num[phrase]
@@ -70,11 +71,22 @@ def add_word_to_phrase(phrase, phrase_with_hint):
             break
         word_idx += 1
 
-    if word_idx == 0:
-        print('Already at the beginning of the ayah!')
-        return phrase_with_hint
+    if word_idx != 0:
+        return ayah_words[word_idx - 1] + ' ' + phrase_with_hint
 
-    return ayah_words[word_idx - 1] + ' ' + phrase_with_hint
+    # Can't prefix anymore words because already at the beginning of the ayah
+    # Append words to the phrase instead until you get to the end of the ayah
+    word_idx = 0
+    while word_idx < len(ayah_words):
+        if ayah_words[word_idx] == phrase_words[len(phrase_words) - 1]:
+            break
+        word_idx += 1
+
+    if word_idx < len(ayah_words) - 1:
+        return phrase_with_hint + ' ' + ayah_words[word_idx + 1]
+
+    print("That is the whole ayah. No more hints! Type 'skip' to accept defeat.")
+    return phrase_with_hint
 
 
 #
@@ -93,7 +105,7 @@ def guess_the_surah():
         surah_num = random.randint(start_surah, end_surah)
         phrase = random.choice(list(surah_num_to_phrases[surah_num]))
 
-        guess = input('Which surah is this phrase from? ' + phrase + '\n> ').strip()
+        guess = input('\nWhich surah is this phrase from? ' + phrase + '\n> ').strip()
 
         phrase_with_hint = phrase
         while guess != str(surah_num) and guess != 'skip':
@@ -104,9 +116,9 @@ def guess_the_surah():
                 guess = input('Incorrect, try again: \n> ').strip()
 
         if guess == 'skip':
-            print('Answer was "' + str(surah_num) + '"\n')
+            print('The phrase was from surah ' + str(surah_num))
         else:
-            print('Correct!\n')
+            print('Correct!')
 
 
 #
