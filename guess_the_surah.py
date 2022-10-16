@@ -7,7 +7,7 @@ should have (fewer the words, more challenging it is) and also the starting and
 ending surahs that you would like to be tested on. To play, run the following
 command from the command line:
 
-    $ python3 unique_phrases.py <min_words_in_phrase> <start_surah> <end_surah>
+    $ python3 guess_the_surah.py <min_words_in_phrase> <start_surah> <end_surah>
 
 <min_words_in_phrase> - (optional, default 3) minimum words in the unique phrase
 <start_surah> - (optional, default 0) starting surah number
@@ -16,7 +16,7 @@ command from the command line:
 For example, if you want at least 2 words in the unique phrases starting from
 surah 78 until surah 90, run:
 
-    $ python3 unique_phrases.py 3 78 90
+    $ python3 guess_the_surah.py 3 78 90
 
 NOTE: The Arabic text does not display properly in the console so copy and paste
 it into a separate text editor (e.g. TextEdit)
@@ -32,16 +32,16 @@ if sys.argv[1]:
 # { 1: (1:1, 2:141), 2: (2:142, 2:252), ... }
 juz_num_to_ayah_range = {}
 
-# { 1: {"2:30": "الْعَالَمِينَ", "2:100": "الْحَمْدُ", ...}, ... }
+# { 1: {'2:30': 'الْعَالَمِينَ'} }
 juz_num_to_ayah_phrases = {}
 
-# { 110: ["الْعَالَمِينَ", "الْحَمْدُ"], 111: ["كَفَيْنَاكَ"] }
+# { 110: ['الْعَالَمِينَ', 'الْحَمْدُ'] }
 surah_num_to_phrases = {}
 
-# { "الْعَالَمِينَ": "2:30", "الْحَمْدُ": "2:100" }
+# { 'الْعَالَمِينَ' : '2:30' }
 phrase_to_ayah_num = {}
 
-# ["مِنْ", "إِنَّ اللَّهَ"]
+# ['مِنْ', 'إِنَّ اللَّهَ']
 non_unique_phrases = set()
 
 
@@ -141,7 +141,7 @@ def compare_ayah(ayah_range, target_ayah_num):
     if surah_num < start_surah_num:
         return -1
 
-    # target surah is greater than start surah
+    # target surah is greater than end surah
     if surah_num > end_surah_num:
         return 1
 
