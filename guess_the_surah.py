@@ -59,8 +59,8 @@ ayah_num_to_prev_ayah_num = {}
 # the ayah, and then it starts appending words to the phrase until the whole
 # ayah is complete.
 #
-def add_word_to_phrase(phrase, phrase_with_hint):
-    ayah_num = phrase_to_ayah_num[phrase]
+def add_word_to_phrase(phrase, phrase_with_hint, hint_ayah_num):
+    ayah_num = hint_ayah_num if hint_ayah_num else phrase_to_ayah_num[phrase]
     ayah = ayah_num_to_ayah[ayah_num]
     ayah_words = ayah.split(' ')
     phrase_words = phrase_with_hint.split(' ')
@@ -72,21 +72,18 @@ def add_word_to_phrase(phrase, phrase_with_hint):
         word_idx += 1
 
     if word_idx != 0:
-        return ayah_words[word_idx - 1] + ' ' + phrase_with_hint
+        new_phrase = ayah_words[word_idx - 1] + ' ' + phrase_with_hint
+        return (new_phrase, ayah_num)
 
-    # Can't prefix anymore words because already at the beginning of the ayah
-    # Append words to the phrase instead until you get to the end of the ayah
-    word_idx = 0
-    while word_idx < len(ayah_words):
-        if ayah_words[word_idx] == phrase_words[len(phrase_words) - 1]:
-            break
-        word_idx += 1
+    prev_ayah_num = ayah_num_to_prev_ayah_num[ayah_num]
+    if not prev_ayah_num:
+        print("Nothing left to add! Get off the computer and revise!")
+        return (phrase_with_hint, ayah_num)
+    prev_ayah_words = ayah_num_to_ayah[prev_ayah_num].split(' ')
 
-    if word_idx < len(ayah_words) - 1:
-        return phrase_with_hint + ' ' + ayah_words[word_idx + 1]
-
-    print("That is the whole ayah. No more hints! Type 'skip' to accept defeat.")
-    return phrase_with_hint
+    prev_ayah_last_word = prev_ayah_words[len(prev_ayah_words) - 1]
+    new_phrase = prev_ayah_last_word + ' | ' + phrase_with_hint
+    return (new_phrase, prev_ayah_num)
 
 
 def print_help_message():
@@ -118,13 +115,15 @@ def guess_the_surah():
         subprocess.run("pbcopy", universal_newlines=True, input=phrase)
         guess = input('\nWhich surah is this phrase from? ' + phrase + '\n> ').strip()
 
+        hint_ayah_num = None
         phrase_with_hint = phrase
         num_incorrect = 0
         while guess != str(surah_num):
             if guess == 'help':
                 print_help_message()
             elif guess == 'hint' or guess == 'h':
-                phrase_with_hint = add_word_to_phrase(phrase, phrase_with_hint)
+                (phrase_with_hint, hint_ayah_num) = \
+                        add_word_to_phrase(phrase, phrase_with_hint, hint_ayah_num)
             elif guess == 'skip' or guess == 's':
                 print('The phrase was from surah ' + str(surah_num))
                 break
