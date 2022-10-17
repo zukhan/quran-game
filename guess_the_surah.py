@@ -1,28 +1,26 @@
 '''
 'Guess the Surah' Game
 
-Displays a unique phrase from the Qur'an and asks you to guess which surah the
-phrase is from. You can control minimum number of words that the unique phrase
-should have (fewer the words, more challenging it is) and also the starting and
-ending surahs that you would like to be tested on. To play, run the following
-command from the command line:
+Displays a minimal length unique phrase from the Qur'an and asks you to guess
+which surah the phrase is from. You can specify the starting and ending surahs
+that you would like to be tested on. To play, run the following command from
+the command line:
 
-    $ python3 guess_the_surah.py <min_words_in_phrase> <start_surah> <end_surah>
+    $ python3 guess_the_surah.py <start_surah> <end_surah>
 
-<min_words_in_phrase> - (optional, default 3) minimum words in the unique phrase
 <start_surah> - (optional, default 0) starting surah number
 <end_surah> - (optional, default 114) ending surah number
 
-For example, if you want at least 2 words in the unique phrases starting from
-surah 78 until surah 90, run:
+For example, if you want unique phrases starting from surah 78 until surah 90,
+run:
 
-    $ python3 guess_the_surah.py 3 78 90
+    $ python3 guess_the_surah.py 78 90
 
 Actions:
 
-    "help" - see available actions with descriptions
-    "hint" - adds an additional word to the phrase to make it easier to guess
-    "skip" - displays the answer and moves onto the next phrase
+    'help' - see available actions with descriptions
+    'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
+    'skip' or 's' - displays the answer and moves onto the next phrase
 
 NOTE: The Arabic text does not display properly in the console. I've made it so
 that the Arabic phrase is automatically copied to Mac OS clipboard so you just 
@@ -33,9 +31,7 @@ import subprocess
 import random
 import sys
 
-MIN_WORDS = 3
-if sys.argv[1]:
-    MIN_WORDS = int(sys.argv[1])
+MIN_WORDS = 1
 
 # { 1: (1:1, 2:141), 2: (2:142, 2:252), ... }
 juz_num_to_ayah_range = {}
@@ -55,6 +51,8 @@ non_unique_phrases = set()
 # { '1:3': 'الرَّحْمَـٰنِ الرَّحِيمِ' }
 ayah_num_to_ayah = {}
 
+# { '1:3':'1:2', '2:1':'1:7' }
+ayah_num_to_prev_ayah_num = {}
 
 #
 # Prefixes an additional word to the phrase until it gets to the beginning of
@@ -64,7 +62,6 @@ ayah_num_to_ayah = {}
 def add_word_to_phrase(phrase, phrase_with_hint):
     ayah_num = phrase_to_ayah_num[phrase]
     ayah = ayah_num_to_ayah[ayah_num]
-
     ayah_words = ayah.split(' ')
     phrase_words = phrase_with_hint.split(' ')
 
@@ -96,9 +93,9 @@ def print_help_message():
     print(
 '''
 Available actions:
-    "help" - see available actions with descriptions
-    "hint" - adds an additional word to the phrase to make it easier to guess
-    "skip" - displays the answer and moves onto the next phrase
+    'help' - see available actions with descriptions
+    'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
+    'skip' or 's' - displays the answer and moves onto the next phrase
 '''
     )
 
@@ -109,10 +106,10 @@ def guess_the_surah():
     start_surah = 0
     end_surah = 114
 
+    if len(sys.argv) > 1:
+        start_surah = int(sys.argv[1])
     if len(sys.argv) > 2:
-        start_surah = int(sys.argv[2])
-    if len(sys.argv) > 3:
-        end_surah = int(sys.argv[3])
+        end_surah = int(sys.argv[2])
 
     while True:
         surah_num = random.randint(start_surah, end_surah)
@@ -126,9 +123,9 @@ def guess_the_surah():
         while guess != str(surah_num):
             if guess == 'help':
                 print_help_message()
-            elif guess == 'hint':
+            elif guess == 'hint' or guess == 'h':
                 phrase_with_hint = add_word_to_phrase(phrase, phrase_with_hint)
-            elif guess == 'skip':
+            elif guess == 'skip' or guess == 's':
                 print('The phrase was from surah ' + str(surah_num))
                 break
             else:
@@ -274,26 +271,27 @@ def find_juz_num(ayah_num):
 #
 def parse_quran():
     with open('resources/quran-simple-plain.txt', encoding='utf_8') as file:
-        ayahs = [l.rstrip() for l in file if l.rstrip() and not l.startswith('#')]
+        lines = [l.rstrip() for l in file if l.rstrip() and not l.startswith('#')]
 
-    # 'ayah' has the following format:
-    # '1|2| الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ'
-    for ayah in ayahs:
-        tokens = ayah.split(' ')
-        surah_num = tokens[0].split('|')[0]
-        ayah_num = tokens[0].split('|')[1]
-        surah_ayah_num = surah_num + ':' + ayah_num
-
-        ayah_num_to_ayah[surah_ayah_num] = ayah.split('|')[2].strip()
-
+    prev_ayah_num = None
+    for line in lines:
+        # 'line' has the following format: "1|2|الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"
+        tokens = line.split('|')
+        ayah_num = tokens[0] + ':' + tokens[1]
         ayah_phrases = set()
-        populate_phrases(tokens, 1, ayah_phrases, '', set())
+
+        ayah_num_to_ayah[ayah_num] = tokens[2].strip()
+
+        populate_phrases(tokens[2].split(' '), 0, ayah_phrases, '', set())
 
         for ayah_phrase in ayah_phrases:
             if ayah_phrase in phrase_to_ayah_num:
                 non_unique_phrases.add(ayah_phrase)
             else:
-                phrase_to_ayah_num[ayah_phrase] = surah_ayah_num
+                phrase_to_ayah_num[ayah_phrase] = ayah_num
+
+        ayah_num_to_prev_ayah_num[ayah_num] = prev_ayah_num
+        prev_ayah_num = ayah_num
 
     # Remove duplicates
     for non_uniq_phrase in non_unique_phrases:
