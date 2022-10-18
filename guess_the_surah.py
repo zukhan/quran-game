@@ -56,34 +56,35 @@ ayah_num_to_prev_ayah_num = {}
 
 #
 # Prefixes an additional word to the phrase until it gets to the beginning of
-# the ayah, and then it starts appending words to the phrase until the whole
-# ayah is complete.
+# the ayah, and then it starts prefixing words from the previous ayah.
 #
-def add_word_to_phrase(phrase, phrase_with_hint, hint_ayah_num):
-    ayah_num = hint_ayah_num if hint_ayah_num else phrase_to_ayah_num[phrase]
+def add_word_to_phrase(phrase, hint_phrase, ayah_num, ayah_idx):
+    ayah_num = ayah_num if ayah_num else phrase_to_ayah_num[phrase]
     ayah = ayah_num_to_ayah[ayah_num]
     ayah_words = ayah.split(' ')
-    phrase_words = phrase_with_hint.split(' ')
+    ayah_idx = ayah_idx if ayah_idx != None else ayah_words.index(phrase) - 1
 
-    word_idx = 0
-    while word_idx < len(ayah_words):
-        if ayah_words[word_idx] == phrase_words[0]:
-            break
-        word_idx += 1
+    # Still have words in the current ayah to prefix
+    if ayah_idx >= 0:
+        hint_phrase = ayah_words[ayah_idx] + ' ' + hint_phrase
+        return (hint_phrase, ayah_num, ayah_idx - 1)
 
-    if word_idx != 0:
-        new_phrase = ayah_words[word_idx - 1] + ' ' + phrase_with_hint
-        return (new_phrase, ayah_num)
+    # Done with the current ayah, go to previous ayah and start prefixing
+    # words from the end of the previous ayah
+    prev_ayah_num = ayah_num_to_prev_ayah_num.get(ayah_num)
 
-    prev_ayah_num = ayah_num_to_prev_ayah_num[ayah_num]
     if not prev_ayah_num:
-        print("Nothing left to add! Get off the computer and revise!")
-        return (phrase_with_hint, ayah_num)
-    prev_ayah_words = ayah_num_to_ayah[prev_ayah_num].split(' ')
+        print("Already at the beginning of the surah. "\
+                + "Looks like you need to revise more...")
+        return (hint_phrase, ayah_num, ayah_idx)
 
-    prev_ayah_last_word = prev_ayah_words[len(prev_ayah_words) - 1]
-    new_phrase = prev_ayah_last_word + ' | ' + phrase_with_hint
-    return (new_phrase, prev_ayah_num)
+    print("Done with current ayah, prefixing words from previous ayah.")
+
+    prev_ayah_words = ayah_num_to_ayah[prev_ayah_num].split(' ')
+    prev_ayah_idx = len(prev_ayah_words) - 1
+    hint_phrase = prev_ayah_words[prev_ayah_idx] + ' | ' + hint_phrase
+
+    return (hint_phrase, prev_ayah_num, prev_ayah_idx - 1)
 
 
 def print_help_message():
@@ -112,18 +113,20 @@ def guess_the_surah():
         surah_num = random.randint(start_surah, end_surah)
         phrase = random.choice(list(surah_num_to_phrases[surah_num]))
 
+        # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
         subprocess.run("pbcopy", universal_newlines=True, input=phrase)
-        guess = input('\nWhich surah is this phrase from? ' + phrase + '\n> ').strip()
 
-        hint_ayah_num = None
-        phrase_with_hint = phrase
+        guess = input('\nWhich surah is this phrase from?\n' + phrase + '\n> ').strip()
+
+        ayah_num, ayah_idx = None, None
+        hint_phrase = phrase
         num_incorrect = 0
         while guess != str(surah_num):
             if guess == 'help':
                 print_help_message()
             elif guess == 'hint' or guess == 'h':
-                (phrase_with_hint, hint_ayah_num) = \
-                        add_word_to_phrase(phrase, phrase_with_hint, hint_ayah_num)
+                (hint_phrase, ayah_num, ayah_idx) = \
+                        add_word_to_phrase(phrase, hint_phrase, ayah_num, ayah_idx)
             elif guess == 'skip' or guess == 's':
                 print('The phrase was from surah ' + str(surah_num))
                 break
@@ -134,8 +137,10 @@ def guess_the_surah():
                 else:
                     print('Incorrect, try again.')
 
-            subprocess.run("pbcopy", universal_newlines=True, input=phrase_with_hint)
-            guess = input(phrase_with_hint + '\n> ').strip()
+            # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
+            subprocess.run("pbcopy", universal_newlines=True, input=hint_phrase)
+
+            guess = input(hint_phrase + '\n> ').strip()
 
         if guess == str(surah_num):
             print('Correct!')
@@ -289,7 +294,9 @@ def parse_quran():
             else:
                 phrase_to_ayah_num[ayah_phrase] = ayah_num
 
-        ayah_num_to_prev_ayah_num[ayah_num] = prev_ayah_num
+        # Do not go outside the surah boundary
+        if prev_ayah_num and ayah_num.split(':')[0] == prev_ayah_num.split(':')[0]:
+            ayah_num_to_prev_ayah_num[ayah_num] = prev_ayah_num
         prev_ayah_num = ayah_num
 
     # Remove duplicates
