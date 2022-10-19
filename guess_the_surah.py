@@ -21,6 +21,7 @@ Actions:
     'help' - see available actions with descriptions
     'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
     'skip' or 's' - displays the answer and moves onto the next phrase
+    'quit' or 'q' - exits the program
 
 NOTE: The Arabic text does not display properly in the console. I've made it so
 that the Arabic phrase is automatically copied to Mac OS clipboard so you just 
@@ -109,6 +110,7 @@ Available actions:
     'help' - see available actions with descriptions
     'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
     'skip' or 's' - displays the answer and moves onto the next phrase
+    'quit' - exits the program
 '''
     )
 
@@ -137,6 +139,8 @@ def guess_the_surah():
         hint_phrase = phrase
         num_incorrect = 0
         while guess != str(surah_num):
+            if guess == 'quit' or guess == 'q':
+                sys.exit("See you soon. Don't forget to revise!")
             if guess == 'help':
                 print_help_message()
             elif guess == 'hint' or guess == 'h':

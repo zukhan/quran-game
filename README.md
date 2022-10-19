@@ -20,6 +20,7 @@ Actions:
 'help' - see available actions with descriptions
 'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
 'skip' or 's' - displays the answer and moves onto the next phrase
+'quit' or 'q' - exits the program
 </pre>
     
 NOTE: The Arabic text does not display properly in some consoles. I've made it so
