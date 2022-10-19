@@ -58,16 +58,31 @@ ayah_num_to_prev_ayah_num = {}
 # Prefixes an additional word to the phrase until it gets to the beginning of
 # the ayah, and then it starts prefixing words from the previous ayah.
 #
-def add_word_to_phrase(phrase, hint_phrase, ayah_num, ayah_idx):
-    ayah_num = ayah_num if ayah_num else phrase_to_ayah_num[phrase]
+def add_word_to_phrase(phrase, hint_phrase, ayah_num, word_idx):
+    if not ayah_num:
+        ayah_num = phrase_to_ayah_num[phrase]
     ayah = ayah_num_to_ayah[ayah_num]
     ayah_words = ayah.split(' ')
-    ayah_idx = ayah_idx if ayah_idx != None else ayah_words.index(phrase) - 1
+
+    # For the first hint, we need to find the location of the phrase in the ayah
+    if word_idx == None:
+        #
+        # English example to help visualize the math...
+        #
+        # ayah: "My name is Zubair Khan"
+        # phrase: "is Zubair",
+        # num_rem_words = 3,
+        # word_idx = 5 - 3 - 1 = 1
+        #
+        char_idx = ayah.index(phrase) # will return char index of phrase in ayah
+        # find out how many words are there between the phrase start and ayah end
+        num_remaining_words = len(ayah[char_idx:].split(' '))
+        word_idx = len(ayah_words) - num_remaining_words - 1
 
     # Still have words in the current ayah to prefix
-    if ayah_idx >= 0:
-        hint_phrase = ayah_words[ayah_idx] + ' ' + hint_phrase
-        return (hint_phrase, ayah_num, ayah_idx - 1)
+    if word_idx >= 0:
+        hint_phrase = ayah_words[word_idx] + ' ' + hint_phrase
+        return (hint_phrase, ayah_num, word_idx - 1)
 
     # Done with the current ayah, go to previous ayah and start prefixing
     # words from the end of the previous ayah
@@ -76,15 +91,15 @@ def add_word_to_phrase(phrase, hint_phrase, ayah_num, ayah_idx):
     if not prev_ayah_num:
         print("Already at the beginning of the surah. "\
                 + "Looks like you need to revise more...")
-        return (hint_phrase, ayah_num, ayah_idx)
+        return (hint_phrase, ayah_num, word_idx)
 
     print("Done with current ayah, prefixing words from previous ayah.")
 
     prev_ayah_words = ayah_num_to_ayah[prev_ayah_num].split(' ')
-    prev_ayah_idx = len(prev_ayah_words) - 1
-    hint_phrase = prev_ayah_words[prev_ayah_idx] + ' | ' + hint_phrase
+    prev_word_idx = len(prev_ayah_words) - 1
+    hint_phrase = prev_ayah_words[prev_word_idx] + ' | ' + hint_phrase
 
-    return (hint_phrase, prev_ayah_num, prev_ayah_idx - 1)
+    return (hint_phrase, prev_ayah_num, prev_word_idx - 1)
 
 
 def print_help_message():
