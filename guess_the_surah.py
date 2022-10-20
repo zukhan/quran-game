@@ -24,15 +24,13 @@ Actions:
     'quit' or 'q' - exits the program
 
 NOTE: The Arabic text does not display properly in the console. I've made it so
-that the Arabic phrase is automatically copied to Mac OS clipboard so you just 
+that the Arabic phrase is automatically copied to Mac OS clipboard so you just
 need to paste it into another text editor like TextEdit (no need to copy it).
 '''
 
 import subprocess
 import random
 import sys
-
-MIN_WORDS = 1
 
 # { 1: (1:1, 2:141), 2: (2:142, 2:252), ... }
 juz_num_to_ayah_range = {}
@@ -133,7 +131,7 @@ def guess_the_surah():
         # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
         subprocess.run("pbcopy", universal_newlines=True, input=phrase)
 
-        guess = input('\nWhich surah is this phrase from?\n' + phrase + '\n> ').strip()
+        guess = input('\nWhich surah is this from?\n{}\n> '.format(phrase)).strip()
 
         ayah_num, ayah_idx = None, None
         hint_phrase = phrase
@@ -151,10 +149,12 @@ def guess_the_surah():
                 break
             else:
                 num_incorrect += 1
+
+                hint_suggestion = ''
                 if num_incorrect > 2:
-                    print("Incorrect, try again. Type 'hint' to add a word to the phrase.")
-                else:
-                    print('Incorrect, try again.')
+                    hint_suggestion = "Type 'hint' to add a word to the phrase."
+
+                print("Incorrect, try again. {}".format(hint_suggestion))
 
             # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
             subprocess.run("pbcopy", universal_newlines=True, input=hint_phrase)
@@ -167,11 +167,11 @@ def guess_the_surah():
 
 #
 # For a given ayah, this function populates the 'ayah_phrases' set with all of
-# the phrases in that ayah that are at least MIN_WORDS long. To take an English
-# example, for the sentence, "I am Sherlock Holmes", after this method executes
-# with MIN_WORDS set to 2, 'ayah_phrases' will be populated with the following
-# phrases: ["I am", "I am Sherlock", "I am Sherlock Holmes", "am Sherlock",
-# "am Sherlock Holmes", "Sherlock Holmes"]
+# the phrases in that ayah. To take an English example, for the sentence,
+# "I am Sherlock", after this method executes, 'ayah_phrases' will be populated
+# with the following phrases:
+#
+#   ["I", "I am", "I am Sherlock", "am", "am Sherlock", "Sherlock"]
 #
 def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
     cache_key = cur_phrase + str(word_idx)
@@ -179,8 +179,7 @@ def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
         return
 
     cur_phrase = cur_phrase.strip()
-    if len(cur_phrase.split(' ')) >= MIN_WORDS:
-        ayah_phrases.add(cur_phrase)
+    ayah_phrases.add(cur_phrase)
 
     if word_idx >= len(ayah_words):
         return
@@ -319,8 +318,8 @@ def parse_quran():
         prev_ayah_num = ayah_num
 
     # Remove duplicates
-    for non_uniq_phrase in non_unique_phrases:
-        del phrase_to_ayah_num[non_uniq_phrase]
+    for non_unique_phrase in non_unique_phrases:
+        del phrase_to_ayah_num[non_unique_phrase]
 
     # Build reverse indexes
     for phrase, ayah_num in phrase_to_ayah_num.items():

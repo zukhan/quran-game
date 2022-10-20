@@ -23,6 +23,6 @@ Actions:
 'quit' or 'q' - exits the program
 </pre>
     
-NOTE: The Arabic text does not display properly in some consoles. I've made it so
-that the Arabic phrase is automatically copied to Mac OS clipboard so you just 
-need to paste it into another text editor like TextEdit (no need to copy it).
+NOTE: The Arabic text doesn't always display properly in the console. I've made
+it so that the Arabic phrase is automatically copied to Mac OS clipboard so you
+can just paste it into another text editor like TextEdit (no need to copy it).
