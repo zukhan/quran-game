@@ -35,8 +35,8 @@ import sys
 # { 1: (1:1, 2:141), 2: (2:142, 2:252), ... }
 juz_num_to_ayah_range = {}
 
-# { 1: {'2:30': 'الْعَالَمِينَ'} }
-juz_num_to_ayah_phrases = {}
+# {'2:30': 'الْعَالَمِينَ'}
+ayah_num_to_phrases = {}
 
 # { 110: ['الْعَالَمِينَ', 'الْحَمْدُ'] }
 surah_num_to_phrases = {}
@@ -99,7 +99,6 @@ def add_word_to_phrase(phrase, hint_phrase, ayah_num, word_idx):
     hint_phrase = prev_ayah_words[prev_word_idx] + ' | ' + hint_phrase
 
     return (hint_phrase, prev_ayah_num, prev_word_idx - 1)
-
 
 def print_help_message():
     print(
@@ -164,7 +163,6 @@ def guess_the_surah():
         if guess == str(surah_num):
             print('Correct!')
 
-
 #
 # For a given ayah, this function populates the 'ayah_phrases' set with all of
 # the phrases in that ayah. To take an English example, for the sentence,
@@ -173,27 +171,18 @@ def guess_the_surah():
 #
 #   ["I", "I am", "I am Sherlock", "am", "am Sherlock", "Sherlock"]
 #
-def populate_phrases(ayah_words, word_idx, ayah_phrases, cur_phrase, cache):
-    cache_key = cur_phrase + str(word_idx)
-    if cache_key in cache:
-        return
+def populate_phrases(ayah_words, ayah_phrases):
+    prev_phrases = []
+    cur_phrases = []
 
-    cur_phrase = cur_phrase.strip()
-    ayah_phrases.add(cur_phrase)
+    for ayah_word in ayah_words:
+        cur_phrases.append(ayah_word)
+        for prev_phrase in prev_phrases:
+            cur_phrases.append("{} {}".format(prev_phrase, ayah_word))
 
-    if word_idx >= len(ayah_words):
-        return
-
-    cur_word = ayah_words[word_idx].strip()
-    new_phrase = cur_phrase + ' ' + cur_word
-
-    # Append the current word to the phrase
-    populate_phrases(ayah_words, word_idx + 1, ayah_phrases, new_phrase, cache)
-    # Start a new phrase with current word as the beginning of the phrase
-    populate_phrases(ayah_words, word_idx + 1, ayah_phrases, cur_word, cache)
-
-    cache.add(cache_key)
-
+        ayah_phrases.update(cur_phrases)
+        prev_phrases = cur_phrases
+        cur_phrases = []
 
 #
 # This function populates the map which defines the juz boundaries (starting
@@ -263,7 +252,6 @@ def compare_ayah(ayah_range, target_ayah_num):
 
     raise Exception('There is a bug in the compare_ayah logic')
 
-
 #
 # Given an ayah_num (e.g. '2:210'), this function finds and returns the number
 # of the juz that the ayah resides in.
@@ -285,7 +273,6 @@ def find_juz_num(ayah_num):
 
     raise Exception('There is a bug in the find_juz_num logic')
 
-
 #
 # This function reads the entire Qur'an from a file and finds the minimal length
 # unique phrases for each ayah and builds up lookup index maps based on various
@@ -300,11 +287,12 @@ def parse_quran():
         # 'line' has the following format: "1|2|الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"
         tokens = line.split('|')
         ayah_num = tokens[0] + ':' + tokens[1]
+        ayah_words = tokens[2].split(' ')
         ayah_phrases = set()
 
         ayah_num_to_ayah[ayah_num] = tokens[2].strip()
 
-        populate_phrases(tokens[2].split(' '), 0, ayah_phrases, '', set())
+        populate_phrases(ayah_words, ayah_phrases)
 
         for ayah_phrase in ayah_phrases:
             if ayah_phrase in phrase_to_ayah_num:
@@ -323,14 +311,9 @@ def parse_quran():
 
     # Build reverse indexes
     for phrase, ayah_num in phrase_to_ayah_num.items():
-        juz_num = find_juz_num(ayah_num)
-
-        if juz_num not in juz_num_to_ayah_phrases:
-            juz_num_to_ayah_phrases[juz_num] = {}
-
-        if ayah_num not in juz_num_to_ayah_phrases[juz_num]:
-            juz_num_to_ayah_phrases[juz_num][ayah_num] = set()
-        juz_num_to_ayah_phrases[juz_num][ayah_num].add(phrase)
+        if ayah_num not in ayah_num_to_phrases:
+            ayah_num_to_phrases[ayah_num] = set()
+        ayah_num_to_phrases[ayah_num].add(phrase)
 
         surah_num = int(ayah_num.split(':')[0])
         if surah_num not in surah_num_to_phrases:
@@ -338,18 +321,18 @@ def parse_quran():
         surah_num_to_phrases[surah_num].add(phrase)
 
     # Only keep the phrases per ayah that have the fewest words
-    for ayah_num_to_phrases in juz_num_to_ayah_phrases.values():
-        for ayah_num, phrases in ayah_num_to_phrases.items():
-            min_phrase_words = 10000
-            for phrase in phrases:
-                min_phrase_words = min(min_phrase_words, len(phrase.split(' ')))
+    for ayah_num, phrases in ayah_num_to_phrases.items():
+        min_phrase_words = 10000
+        for phrase in phrases:
+            min_phrase_words = min(min_phrase_words, len(phrase.split(' ')))
 
-            surah_num = int(ayah_num.split(':')[0])
-            for phrase in phrases.copy():
-                if len(phrase.split(' ')) != min_phrase_words:
-                    phrases.remove(phrase)
-                    del phrase_to_ayah_num[phrase]
-                    surah_num_to_phrases[surah_num].remove(phrase)
+        surah_num = int(ayah_num.split(':')[0])
+        for phrase in phrases.copy():
+            if len(phrase.split(' ')) != min_phrase_words:
+                phrases.remove(phrase)
+                del phrase_to_ayah_num[phrase]
+                surah_num_to_phrases[surah_num].remove(phrase)
+
 
 populate_juz_maps()
 parse_quran()
