@@ -57,9 +57,8 @@ ayah_num_to_prev_ayah_num = {}
 # Prefixes an additional word to the phrase until it gets to the beginning of
 # the ayah, and then it starts prefixing words from the previous ayah.
 #
-def add_word_to_phrase(phrase, hint_phrase, ayah_num, word_idx):
-    if not ayah_num:
-        ayah_num = phrase_to_ayah_num[phrase]
+def add_word_to_phrase(phrase, ayah_num, word_idx):
+    ayah_num = ayah_num if ayah_num else phrase_to_ayah_num[phrase]
     ayah = ayah_num_to_ayah[ayah_num]
     ayah_words = ayah.split(' ')
 
@@ -70,8 +69,9 @@ def add_word_to_phrase(phrase, hint_phrase, ayah_num, word_idx):
         #
         # ayah: "My name is Zubair Khan"
         # phrase: "is Zubair",
-        # num_rem_words = 3,
+        # num_remaining_words = 3,
         # word_idx = 5 - 3 - 1 = 1
+        # ayah_words[word_idx] = "name"
         #
         char_idx = ayah.index(phrase) # will return char index of phrase in ayah
         # find out how many words are there between the phrase start and ayah end
@@ -80,8 +80,8 @@ def add_word_to_phrase(phrase, hint_phrase, ayah_num, word_idx):
 
     # Still have words in the current ayah to prefix
     if word_idx >= 0:
-        hint_phrase = ayah_words[word_idx] + ' ' + hint_phrase
-        return (hint_phrase, ayah_num, word_idx - 1)
+        phrase = f"{ayah_words[word_idx]} {phrase}"
+        return (phrase, ayah_num, word_idx - 1)
 
     # Done with the current ayah, go to previous ayah and start prefixing
     # words from the end of the previous ayah
@@ -90,15 +90,15 @@ def add_word_to_phrase(phrase, hint_phrase, ayah_num, word_idx):
     if not prev_ayah_num:
         print("Already at the beginning of the surah. "\
                 + "Looks like you need to revise more...")
-        return (hint_phrase, ayah_num, word_idx)
+        return (phrase, ayah_num, word_idx)
 
     print("Done with current ayah, prefixing words from previous ayah.")
 
     prev_ayah_words = ayah_num_to_ayah[prev_ayah_num].split(' ')
     prev_word_idx = len(prev_ayah_words) - 1
-    hint_phrase = prev_ayah_words[prev_word_idx] + ' | ' + hint_phrase
+    phrase = f"{prev_ayah_words[prev_word_idx]} | {phrase}"
 
-    return (hint_phrase, prev_ayah_num, prev_word_idx - 1)
+    return (phrase, prev_ayah_num, prev_word_idx - 1)
 
 def print_help_message():
     print(
@@ -111,17 +111,47 @@ Available actions:
 '''
     )
 
+def process_input(surah_num, phrase):
+    guess = input(f"\nWhich surah is this from?\n{phrase}\n> ").strip()
+
+    ayah_num, ayah_idx = None, None
+    num_wrong = 0
+    while guess != str(surah_num):
+
+        if guess == 'quit' or guess == 'q':
+            sys.exit("See you soon. Don't forget to revise!")
+
+        if guess == 'help':
+            print_help_message()
+
+        elif guess == 'hint' or guess == 'h':
+            (phrase, ayah_num, ayah_idx) = \
+                    add_word_to_phrase(phrase, ayah_num, ayah_idx)
+
+        elif guess == 'skip' or guess == 's':
+            print(f"The phrase was from surah {surah_num}")
+            break
+
+        else:
+            num_wrong += 1
+
+            err_msg = "Incorrect, try again."
+            hint_msg = f"{err_msg} Type 'hint' to add a word to the phrase."
+
+            print(err_msg if num_wrong < 3 else hint_msg)
+
+        # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
+        subprocess.run("pbcopy", universal_newlines=True, input=phrase)
+
+        guess = input(f"{phrase}\n> ").strip()
+    return guess
+
 #
-# The main loop that runs the game and processes the user's input
+# The main loop that runs the game
 #
 def guess_the_surah():
-    start_surah = 0
-    end_surah = 114
-
-    if len(sys.argv) > 1:
-        start_surah = int(sys.argv[1])
-    if len(sys.argv) > 2:
-        end_surah = int(sys.argv[2])
+    start_surah = 0 if not len(sys.argv) > 1 else int(sys.argv[1])
+    end_surah = 114 if not len(sys.argv) > 2 else int(sys.argv[2])
 
     while True:
         surah_num = random.randint(start_surah, end_surah)
@@ -130,38 +160,10 @@ def guess_the_surah():
         # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
         subprocess.run("pbcopy", universal_newlines=True, input=phrase)
 
-        guess = input('\nWhich surah is this from?\n{}\n> '.format(phrase)).strip()
-
-        ayah_num, ayah_idx = None, None
-        hint_phrase = phrase
-        num_incorrect = 0
-        while guess != str(surah_num):
-            if guess == 'quit' or guess == 'q':
-                sys.exit("See you soon. Don't forget to revise!")
-            if guess == 'help':
-                print_help_message()
-            elif guess == 'hint' or guess == 'h':
-                (hint_phrase, ayah_num, ayah_idx) = \
-                        add_word_to_phrase(phrase, hint_phrase, ayah_num, ayah_idx)
-            elif guess == 'skip' or guess == 's':
-                print('The phrase was from surah ' + str(surah_num))
-                break
-            else:
-                num_incorrect += 1
-
-                hint_suggestion = ''
-                if num_incorrect > 2:
-                    hint_suggestion = "Type 'hint' to add a word to the phrase."
-
-                print("Incorrect, try again. {}".format(hint_suggestion))
-
-            # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
-            subprocess.run("pbcopy", universal_newlines=True, input=hint_phrase)
-
-            guess = input(hint_phrase + '\n> ').strip()
+        guess = process_input(surah_num, phrase)
 
         if guess == str(surah_num):
-            print('Correct!')
+            print("Correct!")
 
 #
 # For a given ayah, this function populates the 'ayah_phrases' set with all of
@@ -169,7 +171,7 @@ def guess_the_surah():
 # "I am Sherlock", after this method executes, 'ayah_phrases' will be populated
 # with the following phrases:
 #
-#   ["I", "I am", "I am Sherlock", "am", "am Sherlock", "Sherlock"]
+#   ["I", "am", I am", "Sherlock", "am Sherlock", "I am Sherlock"]
 #
 def populate_phrases(ayah_words, ayah_phrases):
     prev_phrases = []
@@ -178,7 +180,7 @@ def populate_phrases(ayah_words, ayah_phrases):
     for ayah_word in ayah_words:
         cur_phrases.append(ayah_word)
         for prev_phrase in prev_phrases:
-            cur_phrases.append("{} {}".format(prev_phrase, ayah_word))
+            cur_phrases.append(f"{prev_phrase} {ayah_word}")
 
         ayah_phrases.update(cur_phrases)
         prev_phrases = cur_phrases
@@ -189,7 +191,7 @@ def populate_phrases(ayah_words, ayah_phrases):
 # and ending ayahs).
 #
 def populate_juz_maps():
-    with open('resources/juz_boundaries.csv') as file:
+    with open("resources/juz_boundaries.csv") as file:
         for line in file:
             tokens = line.strip().split(',')
             juz_num = int(tokens[0])
@@ -250,7 +252,7 @@ def compare_ayah(ayah_range, target_ayah_num):
             return 1
         return 0
 
-    raise Exception('There is a bug in the compare_ayah logic')
+    raise Exception("There is a bug in the compare_ayah logic")
 
 #
 # Given an ayah_num (e.g. '2:210'), this function finds and returns the number
@@ -271,7 +273,7 @@ def find_juz_num(ayah_num):
         else:
             start_idx = mid_idx + 1
 
-    raise Exception('There is a bug in the find_juz_num logic')
+    raise Exception("There is a bug in the find_juz_num logic")
 
 #
 # This function reads the entire Qur'an from a file and finds the minimal length
@@ -279,7 +281,7 @@ def find_juz_num(ayah_num):
 # parameters (e.g. by juz number, surah number, ayah number, etc.)
 #
 def parse_quran():
-    with open('resources/quran-simple-plain.txt', encoding='utf_8') as file:
+    with open("resources/quran-simple-plain.txt", encoding="utf_8") as file:
         lines = [l.rstrip() for l in file if l.rstrip() and not l.startswith('#')]
 
     prev_ayah_num = None
