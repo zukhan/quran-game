@@ -30,28 +30,23 @@ need to paste it into another text editor like TextEdit (no need to copy it).
 
 import subprocess
 import random
+import json
 import sys
 
 # { 1: (1:1, 2:141), 2: (2:142, 2:252), ... }
 juz_num_to_ayah_range = {}
 
-# {'2:30': 'الْعَالَمِينَ'}
-ayah_num_to_phrases = {}
+# { '1:3':'1:2', '2:1':'1:7' }
+ayah_num_to_prev_ayah_num = {}
+
+# { '1:3': 'الرَّحْمَـٰنِ الرَّحِيمِ' }
+ayah_num_to_ayah = {}
 
 # { 110: ['الْعَالَمِينَ', 'الْحَمْدُ'] }
 surah_num_to_phrases = {}
 
 # { 'الْعَالَمِينَ' : '2:30' }
 phrase_to_ayah_num = {}
-
-# ['مِنْ', 'إِنَّ اللَّهَ']
-non_unique_phrases = set()
-
-# { '1:3': 'الرَّحْمَـٰنِ الرَّحِيمِ' }
-ayah_num_to_ayah = {}
-
-# { '1:3':'1:2', '2:1':'1:7' }
-ayah_num_to_prev_ayah_num = {}
 
 #
 # Prefixes an additional word to the phrase until it gets to the beginning of
@@ -155,7 +150,7 @@ def guess_the_surah():
 
     while True:
         surah_num = random.randint(start_surah, end_surah)
-        phrase = random.choice(list(surah_num_to_phrases[surah_num]))
+        phrase = random.choice(surah_num_to_phrases[str(surah_num)])
 
         # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
         subprocess.run("pbcopy", universal_newlines=True, input=phrase)
@@ -282,14 +277,17 @@ def find_juz_num(ayah_num):
 #
 def parse_quran():
     with open("resources/quran-simple-plain.txt", encoding="utf_8") as file:
-        lines = [l.rstrip() for l in file if l.rstrip() and not l.startswith('#')]
+        lines = [l.strip() for l in file if l.strip() and not l.startswith('#')]
+
+    # ['مِنْ', 'إِنَّ اللَّهَ']
+    non_unique_phrases = set()
 
     prev_ayah_num = None
     for line in lines:
         # 'line' has the following format: "1|2|الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"
         tokens = line.split('|')
         ayah_num = tokens[0] + ':' + tokens[1]
-        ayah_words = tokens[2].split(' ')
+        ayah_words = tokens[2].strip().split(' ')
         ayah_phrases = set()
 
         ayah_num_to_ayah[ayah_num] = tokens[2].strip()
@@ -311,31 +309,88 @@ def parse_quran():
     for non_unique_phrase in non_unique_phrases:
         del phrase_to_ayah_num[non_unique_phrase]
 
+    # {'2:30': 'الْعَالَمِينَ'}
+    ayah_num_to_phrases = {}
+
     # Build reverse indexes
     for phrase, ayah_num in phrase_to_ayah_num.items():
         if ayah_num not in ayah_num_to_phrases:
             ayah_num_to_phrases[ayah_num] = set()
         ayah_num_to_phrases[ayah_num].add(phrase)
 
-        surah_num = int(ayah_num.split(':')[0])
+        surah_num = ayah_num.split(':')[0]
         if surah_num not in surah_num_to_phrases:
             surah_num_to_phrases[surah_num] = set()
         surah_num_to_phrases[surah_num].add(phrase)
 
     # Only keep the phrases per ayah that have the fewest words
     for ayah_num, phrases in ayah_num_to_phrases.items():
-        min_phrase_words = 10000
+        min_words = 10000
         for phrase in phrases:
-            min_phrase_words = min(min_phrase_words, len(phrase.split(' ')))
+            min_words = min(min_words, len(phrase.split(' ')))
 
-        surah_num = int(ayah_num.split(':')[0])
-        for phrase in phrases.copy():
-            if len(phrase.split(' ')) != min_phrase_words:
-                phrases.remove(phrase)
+        surah_num = ayah_num.split(':')[0]
+        for phrase in phrases:
+            if len(phrase.split(' ')) != min_words:
                 del phrase_to_ayah_num[phrase]
                 surah_num_to_phrases[surah_num].remove(phrase)
 
+#
+# json.dumps(...) does not handle sets without a custom encoder
+#
+class SetEncoder(json.JSONEncoder):
+    def default(self, obj):
+       if isinstance(obj, set):
+          return list(obj)
+       return json.JSONEncoder.default(self, obj)
 
-populate_juz_maps()
-parse_quran()
+#
+# Building up the indexes every time is expensive. Build them once,
+# save them to files and just deserialize the files for subsequent
+# game invocations.
+#
+def dump_lookup_maps_to_file():
+    dir = "resources/indexes"
+
+    with open(f"{dir}/juz_num_to_ayah_range.json", 'w') as file:
+        file.write(json.dumps(juz_num_to_ayah_range))
+
+    with open(f"{dir}/ayah_num_to_prev_ayah_num.json", 'w') as file:
+        file.write(json.dumps(ayah_num_to_prev_ayah_num))
+
+    with open(f"{dir}/ayah_num_to_ayah.json", 'w') as file:
+        file.write(json.dumps(ayah_num_to_ayah, ensure_ascii=False))
+
+    with open(f"{dir}/surah_num_to_phrases.json", 'w') as file:
+        file.write(json.dumps(surah_num_to_phrases, cls=SetEncoder, ensure_ascii=False))
+
+    with open(f"{dir}/phrase_to_ayah_num.json", 'w') as file:
+        file.write(json.dumps(phrase_to_ayah_num, ensure_ascii=False))
+
+def bootstrap_indexes():
+    dir = "resources/indexes"
+
+    global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num
+    global ayah_num_to_ayah, surah_num_to_phrases, phrase_to_ayah_num
+
+    with open(f"{dir}/juz_num_to_ayah_range.json") as file:
+        juz_num_to_ayah_range = json.loads(file.read())
+
+    with open(f"{dir}/ayah_num_to_prev_ayah_num.json") as file:
+        ayah_num_to_prev_ayah_num = json.loads(file.read())
+
+    with open(f"{dir}/ayah_num_to_ayah.json", encoding="utf_8") as file:
+        ayah_num_to_ayah = json.loads(file.read())
+
+    with open(f"{dir}/surah_num_to_phrases.json", encoding="utf_8") as file:
+        surah_num_to_phrases = json.loads(file.read())
+
+    with open(f"{dir}/phrase_to_ayah_num.json", encoding="utf_8") as file:
+        phrase_to_ayah_num = json.loads(file.read())
+
+#populate_juz_maps()
+#parse_quran()
+#dump_lookup_maps_to_file()
+
+bootstrap_indexes()
 guess_the_surah()
