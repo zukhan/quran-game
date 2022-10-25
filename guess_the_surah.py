@@ -28,10 +28,16 @@ that the Arabic phrase is automatically copied to Mac OS clipboard so you just
 need to paste it into another text editor like TextEdit (no need to copy it).
 '''
 
-import subprocess
-import random
-import json
 import sys
+import json
+import random
+import secrets
+import subprocess
+
+from flask import Flask, render_template, request, session
+
+app = Flask(__name__)
+app.secret_key = secrets.token_bytes(32)
 
 # { 1: (1:1, 2:141), 2: (2:142, 2:252), ... }
 juz_num_to_ayah_range = {}
@@ -141,20 +147,24 @@ def process_input(surah_num, phrase):
         guess = input(f"{phrase}\n> ").strip()
     return guess
 
+def get_random_phrase(start_surah, end_surah):
+    surah_num = str(random.randint(start_surah, end_surah))
+    phrase = random.choice(surah_num_to_phrases[surah_num])
+
+    # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
+    subprocess.run("pbcopy", universal_newlines=True, input=phrase)
+
+    return (surah_num, phrase)
+
 #
-# The main loop that runs the game
+# The main loop that runs the game in the console
 #
 def guess_the_surah():
     start_surah = 0 if not len(sys.argv) > 1 else int(sys.argv[1])
     end_surah = 114 if not len(sys.argv) > 2 else int(sys.argv[2])
 
     while True:
-        surah_num = random.randint(start_surah, end_surah)
-        phrase = random.choice(surah_num_to_phrases[str(surah_num)])
-
-        # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
-        subprocess.run("pbcopy", universal_newlines=True, input=phrase)
-
+        surah_num, phrase = get_random_phrase(start_surah, end_surah)
         guess = process_input(surah_num, phrase)
 
         if guess == str(surah_num):
@@ -188,4 +198,74 @@ def bootstrap_indexes():
         phrase_to_ayah_num = json.loads(file.read())
 
 bootstrap_indexes()
-guess_the_surah()
+
+# This method runs the game in console mode
+#guess_the_surah()
+
+def load_new_phrase():
+    surah_num, phrase = get_random_phrase(session['start_surah'], session['end_surah'])
+    session['surah_num'] = surah_num
+    session['unique_phrase'] = phrase
+    session['phrase'] = phrase
+    session['ayah_num'] = None
+    session['word_idx'] = None
+
+def load_session_start_end_surah():
+    start_surah = session.get('start_surah')
+    end_surah = session.get('end_surah')
+    session['start_surah'] = 1 if not start_surah else start_surah
+    session['end_surah'] = 114 if not end_surah else end_surah
+
+surah_nums = list(range(1, 115))
+def render():
+    load_session_start_end_surah()
+    start = session['start_surah']
+    end = session['end_surah']
+    return render_template("home.html", surah_nums=surah_nums, start=start, end=end)
+
+@app.route("/", methods=['GET'])
+def index():
+    load_session_start_end_surah()
+    load_new_phrase()
+    return render()
+
+@app.route("/", methods=['POST'])
+def index_post():
+    form_start = int(request.form.get('start_surah'))
+    form_end = int(request.form.get('end_surah'))
+
+    # Different start or end surah was selected, reload phrase
+    if session['start_surah'] != form_start or session['end_surah'] != form_end:
+        session['start_surah'] = form_start
+        session['end_surah'] = form_end
+        load_new_phrase()
+
+    if request.form.get('skip') == 'Skip':
+        surah_num = session['surah_num']
+        unique_phrase = session['unique_phrase']
+        session['result'] = f"{unique_phrase} was from surah {surah_num}"
+        load_new_phrase()
+
+    elif request.form.get('guess') == 'Guess':
+        guess = request.form['surah']
+
+        if guess.strip() == session['surah_num']:
+            session['result'] = "Correct!"
+            load_new_phrase()
+        else:
+            session['result'] = "Incorrect..."
+
+    elif request.form.get('hint') == 'Hint':
+        phrase, ayah_num, word_idx = add_word_to_phrase(
+                session['phrase'],
+                session['ayah_num'],
+                session['word_idx'])
+
+        session['phrase'] = phrase
+        session['ayah_num'] = ayah_num
+        session['word_idx'] = word_idx
+
+    return render()
+
+if __name__ == '__main__':
+    app.run()

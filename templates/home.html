@@ -1,0 +1,53 @@
+{% extends "layouts/main.html" %}
+
+{% block content%}
+
+</body>
+
+<br />
+
+<form method="post" action="/">
+  <table>
+    <tr>
+      <td>Start surah</td>
+      <td>
+        <select name="start_surah" onchange="this.form.submit()">
+          {% for surah_num in surah_nums %}
+            {% if surah_num == start %}
+              <option value="{{surah_num}}" SELECTED>{{surah_num}}</option>"
+            {% else %}
+              <option value="{{surah_num}}">{{surah_num}}</option>"
+            {% endif %}
+          {% endfor %}
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td>End surah</td>
+      <td>
+        <select name="end_surah" onchange="this.form.submit()">
+          {% for surah_num in surah_nums %}
+            {% if surah_num == end %}
+              <option value="{{surah_num}}" SELECTED>{{surah_num}}</option>"
+            {% else %}
+              <option value="{{surah_num}}">{{surah_num}}</option>"
+            {% endif %}
+          {% endfor %}
+        </select>
+      </td>
+    </tr>
+  </table>
+
+  <p>What surah is this phrase from?</p>
+  <h4>{{ session['phrase'] }}</h4>
+
+  <class style="color:red">{{ session['result'] }}</class><br />
+  <input name="surah"/> <br />
+  <input type="submit" value="Guess" name="guess"/>
+  <input type="submit" value="Hint" name="hint"/>
+  <input type="submit" value="Skip" name="skip"/>
+</form>
+
+</body>
+
+{% endblock %}
