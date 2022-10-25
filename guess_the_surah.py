@@ -22,10 +22,6 @@ Actions:
     'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
     'skip' or 's' - displays the answer and moves onto the next phrase
     'quit' or 'q' - exits the program
-
-NOTE: The Arabic text does not display properly in the console. I've made it so
-that the Arabic phrase is automatically copied to Mac OS clipboard so you just
-need to paste it into another text editor like TextEdit (no need to copy it).
 '''
 
 import sys
@@ -141,19 +137,12 @@ def process_input(surah_num, phrase):
 
             print(err_msg if num_wrong < 3 else hint_msg)
 
-        # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
-        subprocess.run("pbcopy", universal_newlines=True, input=phrase)
-
         guess = input(f"{phrase}\n> ").strip()
     return guess
 
 def get_random_phrase(start_surah, end_surah):
     surah_num = str(random.randint(start_surah, end_surah))
     phrase = random.choice(surah_num_to_phrases[surah_num])
-
-    # Copies the Arabic text to Mac OS clipboard to allow for easy pasting
-    subprocess.run("pbcopy", universal_newlines=True, input=phrase)
-
     return (surah_num, phrase)
 
 #
@@ -176,8 +165,10 @@ def guess_the_surah():
 # indexes, and outputs them to a file, which can then be used during
 # game initialization.
 #
-def bootstrap_indexes():
-    dir = "resources/indexes"
+def bootstrap_indexes(console_mode):
+    dir = "/home/qurangame/mysite/quran-utils/resources/indexes"
+    if console_mode:
+        dir = "resources/indexes"
 
     global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num
     global ayah_num_to_ayah, surah_num_to_phrases, phrase_to_ayah_num
@@ -197,10 +188,12 @@ def bootstrap_indexes():
     with open(f"{dir}/phrase_to_ayah_num.json", encoding="utf_8") as file:
         phrase_to_ayah_num = json.loads(file.read())
 
-bootstrap_indexes()
 
 # This method runs the game in console mode
+#bootstrap_indexes(True)
 #guess_the_surah()
+
+bootstrap_indexes(False)
 
 def load_new_phrase():
     surah_num, phrase = get_random_phrase(session['start_surah'], session['end_surah'])
@@ -225,6 +218,7 @@ def render():
 
 @app.route("/", methods=['GET'])
 def index():
+    session['result'] = ''
     load_session_start_end_surah()
     load_new_phrase()
     return render()
@@ -233,6 +227,8 @@ def index():
 def index_post():
     form_start = int(request.form.get('start_surah'))
     form_end = int(request.form.get('end_surah'))
+
+    session['result'] = ''
 
     # Different start or end surah was selected, reload phrase
     if session['start_surah'] != form_start or session['end_surah'] != form_end:
