@@ -17,6 +17,9 @@ ayah_num_to_prev_ayah_num = {}
 # { '1:3': 'الرَّحْمَـٰنِ الرَّحِيمِ' }
 ayah_num_to_ayah = {}
 
+# { 1: '1 Al-Fatihah', 2: '2 Al-Baqarah' }
+surah_num_to_name = {}
+
 # { 110: ['الْعَالَمِينَ', 'الْحَمْدُ'] }
 surah_num_to_phrases = {}
 
@@ -24,25 +27,15 @@ surah_num_to_phrases = {}
 phrase_to_ayah_num = {}
 
 #
-# For a given ayah, this function populates the 'ayah_phrases' set with all of
-# the phrases in that ayah. To take an English example, for the sentence,
-# "I am Sherlock", after this method executes, 'ayah_phrases' will be populated
-# with the following phrases:
+# This function populates the surah number to surah name map.
 #
-#   ["I", "am", I am", "Sherlock", "am Sherlock", "I am Sherlock"]
-#
-def populate_phrases(ayah_words, ayah_phrases):
-    prev_phrases = []
-    cur_phrases = []
-
-    for ayah_word in ayah_words:
-        cur_phrases.append(ayah_word)
-        for prev_phrase in prev_phrases:
-            cur_phrases.append(f"{prev_phrase} {ayah_word}")
-
-        ayah_phrases.update(cur_phrases)
-        prev_phrases = cur_phrases
-        cur_phrases = []
+def populate_surah_names():
+    with open("resources/surah_names.csv") as file:
+        for line in file:
+            tokens = line.strip().split(',')
+            surah_num = int(tokens[0])
+            surah_name = tokens[1].strip()
+            surah_num_to_name[surah_num] = surah_name
 
 #
 # This function populates the map which defines the juz boundaries (starting
@@ -134,6 +127,26 @@ def find_juz_num(ayah_num):
     raise Exception("There is a bug in the find_juz_num logic")
 
 #
+# For a given ayah, this function populates the 'ayah_phrases' set with all of
+# the phrases in that ayah. To take an English example, for the sentence,
+# "I am Sherlock", after this function executes, 'ayah_phrases' will be
+# populated with the following phrases:
+#
+#   ["I", "am", I am", "Sherlock", "am Sherlock", "I am Sherlock"]
+#
+def populate_phrases(ayah_words, ayah_phrases):
+    prev_phrases = []
+    cur_phrases = []
+
+    for ayah_word in ayah_words:
+        cur_phrases.append(ayah_word)
+        for prev_phrase in prev_phrases:
+            cur_phrases.append(f"{prev_phrase} {ayah_word}")
+
+        ayah_phrases.update(cur_phrases)
+        prev_phrases = cur_phrases
+        cur_phrases = []
+#
 # This function reads the entire Qur'an from a file and finds the minimal length
 # unique phrases for each ayah and builds up lookup index maps based on various
 # parameters (e.g. by juz number, surah number, ayah number, etc.)
@@ -224,12 +237,16 @@ def dump_lookup_maps_to_file():
     with open(f"{dir}/ayah_num_to_ayah.json", 'w') as file:
         file.write(json.dumps(ayah_num_to_ayah, ensure_ascii=False))
 
+    with open(f"{dir}/surah_num_to_name.json", 'w') as file:
+        file.write(json.dumps(surah_num_to_name))
+
     with open(f"{dir}/surah_num_to_phrases.json", 'w') as file:
         file.write(json.dumps(surah_num_to_phrases, cls=SetEncoder, ensure_ascii=False))
 
     with open(f"{dir}/phrase_to_ayah_num.json", 'w') as file:
         file.write(json.dumps(phrase_to_ayah_num, ensure_ascii=False))
 
+populate_surah_names()
 populate_juz_maps()
 parse_quran()
 dump_lookup_maps_to_file()
