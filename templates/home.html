@@ -12,11 +12,11 @@
       <td>Start surah</td>
       <td>
         <select name="start_surah" onchange="this.form.submit()">
-          {% for surah_num in surah_nums %}
-            {% if surah_num == start %}
-              <option value="{{surah_num}}" SELECTED>{{surah_num}}</option>"
+          {% for surah_name in surah_names %}
+            {% if surah_name == start %}
+              <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
-              <option value="{{surah_num}}">{{surah_num}}</option>"
+              <option value="{{surah_name}}">{{surah_name}}</option>"
             {% endif %}
           {% endfor %}
         </select>
@@ -26,11 +26,11 @@
       <td>End surah</td>
       <td>
         <select name="end_surah" onchange="this.form.submit()">
-          {% for surah_num in surah_nums %}
-            {% if surah_num == end %}
-              <option value="{{surah_num}}" SELECTED>{{surah_num}}</option>"
+          {% for surah_name in surah_names %}
+            {% if surah_name == end %}
+              <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
-              <option value="{{surah_num}}">{{surah_num}}</option>"
+              <option value="{{surah_name}}">{{surah_name}}</option>"
             {% endif %}
           {% endfor %}
         </select>
@@ -42,7 +42,16 @@
   <h4>{{ session['phrase'] }}</h4>
 
   <class style="color:red">{{ session['result'] }}</class><br />
-  <input name="surah"/> <br />
+  <select name="surah">
+    {% for surah_name in surah_names %}
+      {% if surah_name == session['guess'] %}
+        <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
+      {% else %}
+        <option value="{{surah_name}}">{{surah_name}}</option>"
+      {% endif %}
+    {% endfor %}
+  </select>
+  <br />
   <input type="submit" value="Guess" name="guess"/>
   <input type="submit" value="Hint" name="hint"/>
   <input type="submit" value="Skip" name="skip"/>

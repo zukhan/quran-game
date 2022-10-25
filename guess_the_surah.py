@@ -44,6 +44,9 @@ ayah_num_to_prev_ayah_num = {}
 # { '1:3': 'الرَّحْمَـٰنِ الرَّحِيمِ' }
 ayah_num_to_ayah = {}
 
+# { 1: '1 Al-Fatihah', 2: '2 Al-Baqarah' }
+surah_num_to_name = {}
+
 # { 110: ['الْعَالَمِينَ', 'الْحَمْدُ'] }
 surah_num_to_phrases = {}
 
@@ -170,7 +173,7 @@ def bootstrap_indexes(console_mode):
     if console_mode:
         dir = "resources/indexes"
 
-    global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num
+    global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, surah_num_to_name
     global ayah_num_to_ayah, surah_num_to_phrases, phrase_to_ayah_num
 
     with open(f"{dir}/juz_num_to_ayah_range.json") as file:
@@ -178,6 +181,9 @@ def bootstrap_indexes(console_mode):
 
     with open(f"{dir}/ayah_num_to_prev_ayah_num.json") as file:
         ayah_num_to_prev_ayah_num = json.loads(file.read())
+
+    with open(f"{dir}/surah_num_to_name.json") as file:
+        surah_num_to_name = json.loads(file.read())
 
     with open(f"{dir}/ayah_num_to_ayah.json", encoding="utf_8") as file:
         ayah_num_to_ayah = json.loads(file.read())
@@ -188,16 +194,12 @@ def bootstrap_indexes(console_mode):
     with open(f"{dir}/phrase_to_ayah_num.json", encoding="utf_8") as file:
         phrase_to_ayah_num = json.loads(file.read())
 
-
-# This method runs the game in console mode
-#bootstrap_indexes(True)
-#guess_the_surah()
-
-bootstrap_indexes(False)
-
 def load_new_phrase():
-    surah_num, phrase = get_random_phrase(session['start_surah'], session['end_surah'])
-    session['surah_num'] = surah_num
+    print(f"session['start_surah'] = {session['start_surah']}")
+    start_surah = int(session['start_surah'].split(' ')[0])
+    end_surah = int(session['end_surah'].split(' ')[0])
+    surah_num, phrase = get_random_phrase(start_surah, end_surah)
+    session['surah_name'] = surah_num_to_name[str(surah_num)]
     session['unique_phrase'] = phrase
     session['phrase'] = phrase
     session['ayah_num'] = None
@@ -206,15 +208,15 @@ def load_new_phrase():
 def load_session_start_end_surah():
     start_surah = session.get('start_surah')
     end_surah = session.get('end_surah')
-    session['start_surah'] = 1 if not start_surah else start_surah
-    session['end_surah'] = 114 if not end_surah else end_surah
+    session['start_surah'] = surah_num_to_name['1'] if not start_surah else start_surah
+    session['end_surah'] = surah_num_to_name['114'] if not end_surah else end_surah
 
-surah_nums = list(range(1, 115))
 def render():
     load_session_start_end_surah()
     start = session['start_surah']
     end = session['end_surah']
-    return render_template("home.html", surah_nums=surah_nums, start=start, end=end)
+    surah_names = list(surah_num_to_name.values())
+    return render_template("home.html", surah_names=surah_names, start=start, end=end)
 
 @app.route("/", methods=['GET'])
 def index():
@@ -225,8 +227,8 @@ def index():
 
 @app.route("/", methods=['POST'])
 def index_post():
-    form_start = int(request.form.get('start_surah'))
-    form_end = int(request.form.get('end_surah'))
+    form_start = request.form.get('start_surah')
+    form_end = request.form.get('end_surah')
 
     session['result'] = ''
 
@@ -237,15 +239,16 @@ def index_post():
         load_new_phrase()
 
     if request.form.get('skip') == 'Skip':
-        surah_num = session['surah_num']
+        surah_name = session['surah_name']
         unique_phrase = session['unique_phrase']
-        session['result'] = f"{unique_phrase} was from surah {surah_num}"
+        session['result'] = f"{unique_phrase} was from surah '{surah_name}'"
         load_new_phrase()
 
     elif request.form.get('guess') == 'Guess':
         guess = request.form['surah']
+        session['guess'] = guess
 
-        if guess.strip() == session['surah_num']:
+        if guess.strip() == session['surah_name']:
             session['result'] = "Correct!"
             load_new_phrase()
         else:
@@ -263,5 +266,14 @@ def index_post():
 
     return render()
 
+#
+# To run in console mode, comment out the main method below and uncomment the
+# last lines of this file.
+#
+bootstrap_indexes(False)
 if __name__ == '__main__':
     app.run()
+
+# This method runs the game in console mode
+#bootstrap_indexes(True)
+#guess_the_surah()
