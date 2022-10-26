@@ -97,7 +97,7 @@ def add_word_to_phrase(phrase, ayah_num, word_idx):
 
     prev_ayah_words = ayah_num_to_ayah[prev_ayah_num].split(' ')
     prev_word_idx = len(prev_ayah_words) - 1
-    phrase = f"{prev_ayah_words[prev_word_idx]} | {phrase}"
+    phrase = f"{prev_ayah_words[prev_word_idx]} ● {phrase}"
 
     return (phrase, prev_ayah_num, prev_word_idx - 1)
 
