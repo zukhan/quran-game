@@ -12,7 +12,9 @@
       <td>Start surah</td>
       <td>
         <select name="start_surah" onchange="this.form.submit()">
-          {% for surah_name in surah_names %}
+          {% for surah_name in surah_names
+              if surah_name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int
+          %}
             {% if surah_name == start %}
               <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
@@ -26,7 +28,9 @@
       <td>End surah</td>
       <td>
         <select name="end_surah" onchange="this.form.submit()">
-          {% for surah_name in surah_names %}
+          {% for surah_name in surah_names
+              if surah_name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int
+          %}
             {% if surah_name == end %}
               <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
@@ -43,14 +47,14 @@
 
   <class style="color:{{ session['result_color'] }} ">{{ session['result'] }}</class><br />
   <select name="surah">
-    {% for name in surah_names
-        if name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int and
-            name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int
+    {% for surah_name in surah_names
+        if surah_name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int and
+            surah_name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int
     %}
-      {% if name == session['guess'] %}
-        <option value="{{name}}" SELECTED>{{name}}</option>"
+      {% if surah_name == session['guess'] %}
+        <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
       {% else %}
-        <option value="{{name}}">{{name}}</option>"
+        <option value="{{surah_name}}">{{surah_name}}</option>"
       {% endif %}
     {% endfor %}
   </select>
