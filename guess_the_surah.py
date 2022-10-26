@@ -204,7 +204,7 @@ def load_new_phrase():
     session['surah_name'] = surah_num_to_name[str(surah_num)]
     session['unique_phrase'] = phrase
     session['phrase'] = phrase
-    session['ayah_num'] = None
+    session['hint_ayah_num'] = None
     session['word_idx'] = None
 
 def load_session_start_end_surah():
@@ -220,6 +220,12 @@ def render():
     surah_names = list(surah_num_to_name.values())
     return render_template("home.html", surah_names=surah_names, start=start, end=end)
 
+def build_quran_com_link(unique_phrase):
+    surah_ayah_num = phrase_to_ayah_num[unique_phrase]
+    surah_num = surah_ayah_num.split(':')[0].strip()
+    ayah_num = surah_ayah_num.split(':')[1].strip()
+    return f"<a href=\"https://quran.com/{surah_num}/{ayah_num}\" target=\"_blank\">{surah_ayah_num}</a>"
+
 @app.route("/", methods=['GET'])
 def index():
     session['result'] = ''
@@ -232,6 +238,9 @@ def index_post():
     form_start = request.form.get('start_surah')
     form_end = request.form.get('end_surah')
 
+    unique_phrase = session['unique_phrase']
+    quran_com_link = build_quran_com_link(unique_phrase)
+
     session['result'] = ''
 
     # Different start or end surah was selected, reload phrase
@@ -241,9 +250,8 @@ def index_post():
         load_new_phrase()
 
     if request.form.get('skip') == 'Skip':
-        surah_name = session['surah_name']
-        unique_phrase = session['unique_phrase']
-        session['result'] = f"{unique_phrase} was from surah '{surah_name}'"
+        surah_name = session['surah_name'].split(' ')[1]
+        session['result'] = f"« {unique_phrase} » was from {quran_com_link} ('{surah_name}')"
         session['result_color'] = "red"
         load_new_phrase()
 
@@ -252,7 +260,7 @@ def index_post():
         session['guess'] = guess
 
         if guess.strip() == session['surah_name']:
-            session['result'] = "Correct! Good job!"
+            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link}"
             session['result_color'] = "green"
             load_new_phrase()
         else:
@@ -260,13 +268,13 @@ def index_post():
             session['result_color'] = "red"
 
     elif request.form.get('hint') == 'Hint':
-        phrase, ayah_num, word_idx = add_word_to_phrase(
+        phrase, hint_ayah_num, word_idx = add_word_to_phrase(
                 session['phrase'],
-                session['ayah_num'],
+                session['hint_ayah_num'],
                 session['word_idx'])
 
         session['phrase'] = phrase
-        session['ayah_num'] = ayah_num
+        session['hint_ayah_num'] = hint_ayah_num
         session['word_idx'] = word_idx
 
     return render()
