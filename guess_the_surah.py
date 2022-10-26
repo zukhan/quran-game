@@ -24,6 +24,7 @@ Actions:
     'quit' or 'q' - exits the program
 '''
 
+import os
 import sys
 import json
 import random
@@ -168,10 +169,11 @@ def guess_the_surah():
 # indexes, and outputs them to a file, which can then be used during
 # game initialization.
 #
-def bootstrap_indexes(console_mode):
-    dir = "/home/qurangame/mysite/quran-utils/resources/indexes"
-    if console_mode:
+def bootstrap_indexes():
+    if os.path.exists("resources/indexes"):
         dir = "resources/indexes"
+    else:
+        dir = "/home/qurangame/mysite/quran-utils/resources/indexes"
 
     global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, surah_num_to_name
     global ayah_num_to_ayah, surah_num_to_phrases, phrase_to_ayah_num
@@ -233,7 +235,7 @@ def index_post():
     session['result'] = ''
 
     # Different start or end surah was selected, reload phrase
-    if session['start_surah'] != form_start or session['end_surah'] != form_end:
+    if session.get('start_surah') != form_start or session.get('end_surah') != form_end:
         session['start_surah'] = form_start
         session['end_surah'] = form_end
         load_new_phrase()
@@ -273,10 +275,10 @@ def index_post():
 # To run in console mode, comment out the main method below and uncomment the
 # last lines of this file.
 #
-bootstrap_indexes(False)
+bootstrap_indexes()
 if __name__ == '__main__':
     app.run()
 
 # This method runs the game in console mode
-#bootstrap_indexes(True)
+#bootstrap_indexes()
 #guess_the_surah()
