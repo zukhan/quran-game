@@ -197,10 +197,12 @@ def bootstrap_indexes():
         phrase_to_ayah_num = json.loads(file.read())
 
 def load_new_phrase():
-    print(f"session['start_surah'] = {session['start_surah']}")
+    load_session_start_end_surah()
+
     start_surah = int(session['start_surah'].split(' ')[0])
     end_surah = int(session['end_surah'].split(' ')[0])
     surah_num, phrase = get_random_phrase(start_surah, end_surah)
+
     session['surah_name'] = surah_num_to_name[str(surah_num)]
     session['unique_phrase'] = phrase
     session['phrase'] = phrase
@@ -238,10 +240,14 @@ def index_post():
     form_start = request.form.get('start_surah')
     form_end = request.form.get('end_surah')
 
-    unique_phrase = session['unique_phrase']
-    quran_com_link = build_quran_com_link(unique_phrase)
-
     session['result'] = ''
+
+    unique_phrase = session.get('unique_phrase')
+    if not unique_phrase:
+        load_new_phrase()
+        return render()
+
+    quran_com_link = build_quran_com_link(unique_phrase)
 
     # Different start or end surah was selected, reload phrase
     if session.get('start_surah') != form_start or session.get('end_surah') != form_end:
