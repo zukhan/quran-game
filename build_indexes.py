@@ -26,6 +26,8 @@ surah_num_to_phrases = {}
 # { 'الْعَالَمِينَ' : '2:30' }
 phrase_to_ayah_num = {}
 
+basmalah = 'بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ'
+
 #
 # This function populates the surah number to surah name map.
 #
@@ -163,10 +165,13 @@ def parse_quran():
         # 'line' has the following format: "1|2|الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"
         tokens = line.split('|')
         ayah_num = tokens[0] + ':' + tokens[1]
-        ayah_words = tokens[2].strip().split(' ')
+        ayah = tokens[2].replace(basmalah, '').strip()
+        if not ayah:
+            continue
+        ayah_words = ayah.split(' ')
         ayah_phrases = set()
 
-        ayah_num_to_ayah[ayah_num] = tokens[2].strip()
+        ayah_num_to_ayah[ayah_num] = ayah
 
         populate_phrases(ayah_words, ayah_phrases)
 
@@ -217,7 +222,7 @@ def parse_quran():
 class SetEncoder(json.JSONEncoder):
     def default(self, obj):
        if isinstance(obj, set):
-          return list(obj)
+          return sorted(list(obj))
        return json.JSONEncoder.default(self, obj)
 
 #
@@ -229,22 +234,23 @@ def dump_lookup_maps_to_file():
     dir = "resources/indexes"
 
     with open(f"{dir}/juz_num_to_ayah_range.json", 'w') as file:
-        file.write(json.dumps(juz_num_to_ayah_range))
+        file.write(json.dumps(juz_num_to_ayah_range, indent=2))
 
     with open(f"{dir}/ayah_num_to_prev_ayah_num.json", 'w') as file:
-        file.write(json.dumps(ayah_num_to_prev_ayah_num))
+        file.write(json.dumps(ayah_num_to_prev_ayah_num, indent=2))
 
     with open(f"{dir}/ayah_num_to_ayah.json", 'w') as file:
-        file.write(json.dumps(ayah_num_to_ayah, ensure_ascii=False))
+        file.write(json.dumps(ayah_num_to_ayah, ensure_ascii=False, indent=2))
 
     with open(f"{dir}/surah_num_to_name.json", 'w') as file:
-        file.write(json.dumps(surah_num_to_name))
+        file.write(json.dumps(surah_num_to_name, indent=2))
 
     with open(f"{dir}/surah_num_to_phrases.json", 'w') as file:
-        file.write(json.dumps(surah_num_to_phrases, cls=SetEncoder, ensure_ascii=False))
+        file.write(json.dumps(surah_num_to_phrases, cls=SetEncoder, ensure_ascii=False, indent=2))
 
     with open(f"{dir}/phrase_to_ayah_num.json", 'w') as file:
-        file.write(json.dumps(phrase_to_ayah_num, ensure_ascii=False))
+        sorted_phrase_to_ayah_num = dict(sorted(phrase_to_ayah_num.items()))
+        file.write(json.dumps(sorted_phrase_to_ayah_num, ensure_ascii=False, indent=2))
 
 populate_surah_names()
 populate_juz_maps()
