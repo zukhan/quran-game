@@ -41,13 +41,16 @@
   <p>What surah is this phrase from?</p>
   <h4>{{ session['phrase'] }}</h4>
 
-  <class style="color:red">{{ session['result'] }}</class><br />
+  <class style="color:{{ session['result_color'] }} ">{{ session['result'] }}</class><br />
   <select name="surah">
-    {% for surah_name in surah_names %}
-      {% if surah_name == session['guess'] %}
-        <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
+    {% for name in surah_names
+        if name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int and
+            name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int
+    %}
+      {% if name == session['guess'] %}
+        <option value="{{name}}" SELECTED>{{name}}</option>"
       {% else %}
-        <option value="{{surah_name}}">{{surah_name}}</option>"
+        <option value="{{name}}">{{name}}</option>"
       {% endif %}
     {% endfor %}
   </select>

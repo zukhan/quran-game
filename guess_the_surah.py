@@ -242,6 +242,7 @@ def index_post():
         surah_name = session['surah_name']
         unique_phrase = session['unique_phrase']
         session['result'] = f"{unique_phrase} was from surah '{surah_name}'"
+        session['result_color'] = "red"
         load_new_phrase()
 
     elif request.form.get('guess') == 'Guess':
@@ -249,10 +250,12 @@ def index_post():
         session['guess'] = guess
 
         if guess.strip() == session['surah_name']:
-            session['result'] = "Correct!"
+            session['result'] = "Correct! Good job!"
+            session['result_color'] = "green"
             load_new_phrase()
         else:
-            session['result'] = "Incorrect..."
+            session['result'] = "Incorrect. Try again."
+            session['result_color'] = "red"
 
     elif request.form.get('hint') == 'Hint':
         phrase, ayah_num, word_idx = add_word_to_phrase(
