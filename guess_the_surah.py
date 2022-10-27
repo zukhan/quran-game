@@ -230,6 +230,9 @@ def build_quran_com_link(unique_phrase):
 
 @app.route("/", methods=['GET'])
 def index():
+    score = session.get('score')
+    session['score'] = score if score else 0
+
     session['result'] = ''
     load_session_start_end_surah()
     load_new_phrase()
@@ -237,6 +240,9 @@ def index():
 
 @app.route("/", methods=['POST'])
 def index_post():
+    score = session.get('score')
+    session['score'] = score if score else 0
+
     form_start = request.form.get('start_surah')
     form_end = request.form.get('end_surah')
 
@@ -266,7 +272,10 @@ def index_post():
         session['guess'] = guess
 
         if guess.strip() == session['surah_name']:
-            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link}"
+            score = session.get('score')
+            session['score'] = score + 1 if score else 1
+            surah_name = session['surah_name'].split(' ')[1]
+            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link} ('{surah_name}')"
             session['result_color'] = "green"
             load_new_phrase()
         else:
