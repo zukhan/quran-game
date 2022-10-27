@@ -9,7 +9,7 @@
 <form method="post" action="/">
   <table>
     <tr>
-      <td>Start surah</td>
+      <td>Start Surah</td>
       <td>
         <select name="start_surah" onchange="this.form.submit()">
           {% for surah_name in surah_names
@@ -25,7 +25,7 @@
       </td>
     </tr>
     <tr>
-      <td>End surah</td>
+      <td>End Surah</td>
       <td>
         <select name="end_surah" onchange="this.form.submit()">
           {% for surah_name in surah_names
@@ -42,7 +42,7 @@
     </tr>
   </table>
 
-  <p>What surah is this phrase from?</p>
+  <strong><p>Which surah is this phrase from?</p></strong>
   <h4>{{ session['phrase'] }}</h4>
 
   <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
@@ -63,6 +63,15 @@
   <input type="submit" value="Hint" name="hint"/>
   <input type="submit" value="Skip" name="skip"/>
 </form>
+
+<strong><p>How to play:</p></strong>
+<ol>
+  <li>Select the "Start Surah" and "End Surah" at the top of the page. The phrase will only be shown from a surah that is between the start and end surahs.</li>
+  <li>Select the answer from the list of surahs that is above the "Guess" button.</li>
+  <li>Click on the "Guess" button to check your answer.</li>
+  <li>Click on the "Hint" button to add a word to the phrase to make it easier to guess.</li>
+  <li>Click on the "Skip" button to move onto the next phrase if you can't figure out the answer.</li>
+</ol>
 
 </body>
 
