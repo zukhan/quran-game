@@ -235,6 +235,7 @@ input[type="password"],
 textarea,
 select {
   height: 38px;
+  margin-top: 5px;
   padding: 6px 10px; /* The 6px vertically centers text on FF, ignored by Webkit */
   background-color: #fff;
   border: 1px solid #D1D1D1;
@@ -324,7 +325,7 @@ pre > code {
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 th,
 td {
-  padding: 5px 5px;
+  padding: 2.5px 5px;
   text-align: left;
   #border-bottom: 1px solid #E1E1E1; 
 }
@@ -344,8 +345,8 @@ button,
 input,
 textarea,
 fieldset {
-  margin-top: 0.5rem;
-  margin-bottom: 1.5rem; }
+  margin: 1rem 0.5rem 1.5rem 0
+  }
 pre,
 blockquote,
 dl,
@@ -354,7 +355,7 @@ table,
 ul,
 ol,
 form {
-  margin-bottom: 2.5rem; }
+  margin-bottom: 1.5rem; }
 
 
 /* Utilities
