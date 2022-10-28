@@ -66,16 +66,36 @@
   <input type="submit" value="Skip" name="skip"/>
 </form>
 
-<strong><p>How to play:</p></strong>
-<ol>
-  <li>Select the "Start Surah" and "End Surah" at the top of the page. The phrase will only be shown from a surah that is between the start and end surahs.</li>
-  <li>Select the answer from the list of surahs that is above the "Guess" button.</li>
-  <li>Click on the "Guess" button to check your answer.</li>
-  <li>Click on the "Hint" button to add a word to the phrase to make it easier to guess.</li>
-  <li>Click on the "Skip" button to move onto the next phrase if you can't figure out the answer.</li>
-</ol>
+<button type="button" class="collapsible">How To Play</button>
+<div class="content">
+  <br />
+  <ol>
+    <li>Select the "Start Surah" and "End Surah" at the top of the page. The phrase will only be shown from a surah that is between the start and end surahs.</li>
+    <li>Select the answer from the list of surahs that is above the "Guess" button.</li>
+    <li>Click on the "Guess" button to check your answer.</li>
+    <li>Click on the "Hint" button to add a word to the phrase to make it easier to guess.</li>
+    <li>Click on the "Skip" button to move onto the next phrase if you can't figure out the answer.</li>
+  </ol>
+</div>
 
 <p style="color:red"><i>For any issues, feedback, or feature requests, please email qurangames1[@]gmail[.]com.</i></p>
+
+<script>
+var coll = document.getElementsByClassName("collapsible");
+var i;
+
+for (i = 0; i < coll.length; i++) {
+  coll[i].addEventListener("click", function() {
+    this.classList.toggle("active");
+    var content = this.nextElementSibling;
+    if (content.style.display === "block") {
+      content.style.display = "none";
+    } else {
+      content.style.display = "block";
+    }
+  });
+}
+</script>
 
 </body>
 

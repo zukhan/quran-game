@@ -270,7 +270,7 @@ def index_post():
 
     if request.form.get('skip') == 'Skip':
         surah_name = session['surah_name'].split(' ')[1]
-        session['result'] = f"« {unique_phrase} » was from {quran_com_link} ('{surah_name}')"
+        session['result'] = f"« {unique_phrase} » was from {quran_com_link} ({surah_name})"
         session['result_color'] = "red"
         load_new_phrase()
 
@@ -282,7 +282,7 @@ def index_post():
             score = session.get('score')
             session['score'] = score + 1 if score else 1
             surah_name = session['surah_name'].split(' ')[1]
-            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link} ('{surah_name}')"
+            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link}"
             session['result_color'] = "green"
             load_new_phrase()
         else:
