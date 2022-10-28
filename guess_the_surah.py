@@ -29,6 +29,7 @@ import sys
 import json
 import random
 import secrets
+import datetime
 import subprocess
 
 from flask import Flask, render_template, request, session
@@ -227,6 +228,12 @@ def build_quran_com_link(unique_phrase):
     surah_num = surah_ayah_num.split(':')[0].strip()
     ayah_num = surah_ayah_num.split(':')[1].strip()
     return f"<a href=\"https://quran.com/{surah_num}/{ayah_num}\" target=\"_blank\">{surah_ayah_num}</a>"
+
+@app.before_request
+def before_request():
+    session.permanent = True
+    app.permanent_session_lifetime = datetime.timedelta(minutes=30)
+    session.modified = True
 
 @app.route("/", methods=['GET'])
 def index():
