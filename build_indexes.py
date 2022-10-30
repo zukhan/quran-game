@@ -20,6 +20,9 @@ ayah_num_to_ayah = {}
 # { 1: '1 Al-Fatihah', 2: '2 Al-Baqarah' }
 surah_num_to_name = {}
 
+# { 1: ['1:1', '1:2', '1:3'], 2: ['2:1'] }
+surah_num_to_ayah_nums = {}
+
 # { 110: ['الْعَالَمِينَ', 'الْحَمْدُ'] }
 surah_num_to_phrases = {}
 
@@ -164,12 +167,17 @@ def parse_quran():
     for line in lines:
         # 'line' has the following format: "1|2|الْحَمْدُ لِلَّهِ رَبِّ الْعَالَمِينَ"
         tokens = line.split('|')
-        ayah_num = tokens[0] + ':' + tokens[1]
+        surah_num = tokens[0]
+        ayah_num = f"{surah_num}:{tokens[1]}"
         ayah = tokens[2].replace(basmalah, '').strip()
         if not ayah:
             continue
         ayah_words = ayah.split(' ')
         ayah_phrases = set()
+
+        if not surah_num_to_ayah_nums.get(surah_num):
+            surah_num_to_ayah_nums[surah_num] = []
+        surah_num_to_ayah_nums[surah_num].append(ayah_num)
 
         ayah_num_to_ayah[ayah_num] = ayah
 
@@ -238,6 +246,9 @@ def dump_lookup_maps_to_file():
 
     with open(f"{dir}/ayah_num_to_prev_ayah_num.json", 'w') as file:
         file.write(json.dumps(ayah_num_to_prev_ayah_num, indent=2))
+
+    with open(f"{dir}/surah_num_to_ayah_nums.json", 'w') as file:
+        file.write(json.dumps(surah_num_to_ayah_nums, indent=2))
 
     with open(f"{dir}/ayah_num_to_ayah.json", 'w') as file:
         file.write(json.dumps(ayah_num_to_ayah, ensure_ascii=False, indent=2))

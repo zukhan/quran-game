@@ -6,9 +6,19 @@
 
 <br />
 
+{% if session['easy_mode'] %}
+  <p>Too easy? Switch to <a href="/">hard mode</a>.</p>
+{% else %}
+  <p>Too hard? Switch to <a href="/easy">easy mode</a>.</p>
+{% endif %}
+
 <p style="color:green">Score: {{session['score']}}</p>
 
+{% if session['easy_mode'] %}
+<form method="post" action="/easy">
+{% else %}
 <form method="post" action="/">
+{% endif %}
   <table>
     <tr>
       <td>Start Surah</td>
@@ -73,8 +83,13 @@
     <li>Select the "Start Surah" and "End Surah" at the top of the page.</li>
     <li>Select the answer from the list of surahs that is above the "Guess" button.</li>
     <li>Click on the "Guess" button to check your answer.</li>
-    <li>Click on the "Hint" button to add a word to the phrase to make it easier to guess.</li>
-    <li>Click on the "Skip" button to move onto the next phrase if you can't figure out the answer.</li>
+    {% if session['easy_mode'] %}
+      <li>Click on the "Hint" button to add another ayah to make it easier to guess.</li>
+      <li>Click on the "Skip" button to move onto the next ayah if you can't figure out the answer.</li>
+    {% else %}
+      <li>Click on the "Hint" button to add a word to the phrase to make it easier to guess.</li>
+      <li>Click on the "Skip" button to move onto the next phrase if you can't figure out the answer.</li>
+    {% endif %}
   </ol>
 </div>
 

@@ -49,11 +49,33 @@ ayah_num_to_ayah = {}
 # { 1: '1 Al-Fatihah', 2: '2 Al-Baqarah' }
 surah_num_to_name = {}
 
+# { 1: ['1:1', '1:2', '1:3'], 2: ['2:1'] }
+surah_num_to_ayah_nums = {}
+
 # { 110: ['الْعَالَمِينَ', 'الْحَمْدُ'] }
 surah_num_to_phrases = {}
 
 # { 'الْعَالَمِينَ' : '2:30' }
 phrase_to_ayah_num = {}
+
+#
+# Adds another ayah before the current ayah
+#
+def prefix_ayah(phrase, surah_ayah_num):
+    if not surah_ayah_num:
+        surah_ayah_num = f"{session['surah_num']}:{session['ayah_num']}"
+
+    prev_ayah_num = ayah_num_to_prev_ayah_num.get(surah_ayah_num)
+
+    if not prev_ayah_num:
+        print("Already at the beginning of the surah. "\
+                + "Looks like you need to revise more...")
+        return (phrase, surah_ayah_num)
+
+    prev_ayah = ayah_num_to_ayah[prev_ayah_num]
+    phrase = f"{prev_ayah} ● {phrase}"
+
+    return (phrase, prev_ayah_num)
 
 #
 # Prefixes an additional word to the phrase until it gets to the beginning of
@@ -127,8 +149,11 @@ def process_input(surah_num, phrase):
             print_help_message()
 
         elif guess == 'hint' or guess == 'h':
-            (phrase, ayah_num, ayah_idx) = \
-                    add_word_to_phrase(phrase, ayah_num, ayah_idx)
+            if session['easy_mode']:
+                (phrase, ayah_num) = prefix_ayah(phrase, ayah_num)
+            else:
+                (phrase, ayah_num, ayah_idx) = \
+                        add_word_to_phrase(phrase, ayah_num, ayah_idx)
 
         elif guess == 'skip' or guess == 's':
             print(f"The phrase was from surah {surah_num}")
@@ -148,7 +173,20 @@ def process_input(surah_num, phrase):
 def get_random_phrase(start_surah, end_surah):
     surah_num = str(random.randint(start_surah, end_surah))
     phrase = random.choice(surah_num_to_phrases[surah_num])
-    return (surah_num, phrase)
+    ayah_num = phrase_to_ayah_num[phrase].split(':')[1]
+    return (surah_num, ayah_num, phrase)
+
+def get_random_ayah(start_surah, end_surah):
+    surah_num = str(random.randint(start_surah, end_surah))
+    surah_ayah_num = random.choice(surah_num_to_ayah_nums[surah_num])
+    ayah_num = surah_ayah_num.split(':')[1]
+
+    # Skip the first ayah, it's too easy
+    while ayah_num == '1':
+        surah_ayah_num = random.choice(surah_num_to_ayah_nums[surah_num])
+        ayah_num = surah_ayah_num.split(':')[1]
+
+    return (surah_num, ayah_num, ayah_num_to_ayah[surah_ayah_num])
 
 #
 # The main loop that runs the game in the console
@@ -176,14 +214,18 @@ def bootstrap_indexes():
     else:
         dir = "/home/qurangame/mysite/quran-utils/resources/indexes"
 
-    global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, surah_num_to_name
-    global ayah_num_to_ayah, surah_num_to_phrases, phrase_to_ayah_num
+    global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, \
+            surah_num_to_ayah_nums, surah_num_to_name, ayah_num_to_ayah, \
+            surah_num_to_phrases, phrase_to_ayah_num
 
     with open(f"{dir}/juz_num_to_ayah_range.json") as file:
         juz_num_to_ayah_range = json.loads(file.read())
 
     with open(f"{dir}/ayah_num_to_prev_ayah_num.json") as file:
         ayah_num_to_prev_ayah_num = json.loads(file.read())
+
+    with open(f"{dir}/surah_num_to_ayah_nums.json") as file:
+        surah_num_to_ayah_nums = json.loads(file.read())
 
     with open(f"{dir}/surah_num_to_name.json") as file:
         surah_num_to_name = json.loads(file.read())
@@ -202,9 +244,15 @@ def load_new_phrase():
 
     start_surah = int(session['start_surah'].split(' ')[0])
     end_surah = int(session['end_surah'].split(' ')[0])
-    surah_num, phrase = get_random_phrase(start_surah, end_surah)
+
+    if session['easy_mode']:
+        surah_num, ayah_num, phrase = get_random_ayah(start_surah, end_surah)
+    else:
+        surah_num, ayah_num, phrase = get_random_phrase(start_surah, end_surah)
 
     session['surah_name'] = surah_num_to_name[str(surah_num)]
+    session['surah_num'] = str(surah_num)
+    session['ayah_num'] = str(ayah_num)
     session['unique_phrase'] = phrase
     session['phrase'] = phrase
     session['hint_ayah_num'] = None
@@ -224,9 +272,9 @@ def render():
     return render_template("home.html", surah_names=surah_names, start=start, end=end)
 
 def build_quran_com_link(unique_phrase):
-    surah_ayah_num = phrase_to_ayah_num[unique_phrase]
-    surah_num = surah_ayah_num.split(':')[0].strip()
-    ayah_num = surah_ayah_num.split(':')[1].strip()
+    surah_num = session['surah_num']
+    ayah_num = session['ayah_num']
+    surah_ayah_num = f"{surah_num}:{ayah_num}"
     return f"<a href=\"https://quran.com/{surah_num}/{ayah_num}\" target=\"_blank\">{surah_ayah_num}</a>"
 
 @app.before_request
@@ -237,6 +285,17 @@ def before_request():
 
 @app.route("/", methods=['GET'])
 def index():
+    print("in / GET")
+    session['easy_mode'] = False
+    return get()
+
+@app.route("/easy", methods=['GET'])
+def index_easy():
+    print("in /easy GET")
+    session['easy_mode'] = True
+    return get()
+
+def get():
     score = session.get('score')
     session['score'] = score if score else 0
 
@@ -247,6 +306,17 @@ def index():
 
 @app.route("/", methods=['POST'])
 def index_post():
+    print("in / POST")
+    session['easy_mode'] = False
+    return post()
+
+@app.route("/easy", methods=['POST'])
+def index_post_easy():
+    print("in /easy POST")
+    session['easy_mode'] = True
+    return post()
+
+def post():
     score = session.get('score')
     session['score'] = score if score else 0
 
@@ -290,10 +360,18 @@ def index_post():
             session['result_color'] = "red"
 
     elif request.form.get('hint') == 'Hint':
-        phrase, hint_ayah_num, word_idx = add_word_to_phrase(
-                session['phrase'],
-                session['hint_ayah_num'],
-                session['word_idx'])
+
+        word_idx = None
+
+        if session['easy_mode']:
+            phrase, hint_ayah_num = prefix_ayah(
+                    session['phrase'],
+                    session['hint_ayah_num'])
+        else:
+            phrase, hint_ayah_num, word_idx = add_word_to_phrase(
+                    session['phrase'],
+                    session['hint_ayah_num'],
+                    session['word_idx'])
 
         session['phrase'] = phrase
         session['hint_ayah_num'] = hint_ayah_num
