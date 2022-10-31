@@ -32,7 +32,7 @@ import secrets
 import datetime
 import subprocess
 
-from flask import Flask, render_template, request, session
+from flask import *
 
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
@@ -68,8 +68,9 @@ def prefix_ayah(phrase, surah_ayah_num):
     prev_ayah_num = ayah_num_to_prev_ayah_num.get(surah_ayah_num)
 
     if not prev_ayah_num:
-        print("Already at the beginning of the surah. "\
-                + "Looks like you need to revise more...")
+        session['result'] = "No more hints. Already at the beginning of the surah!"
+        session['result_color'] = 'yellow'
+
         return (phrase, surah_ayah_num)
 
     prev_ayah = ayah_num_to_ayah[prev_ayah_num]
@@ -112,11 +113,10 @@ def add_word_to_phrase(phrase, ayah_num, word_idx):
     prev_ayah_num = ayah_num_to_prev_ayah_num.get(ayah_num)
 
     if not prev_ayah_num:
-        print("Already at the beginning of the surah. "\
-                + "Looks like you need to revise more...")
-        return (phrase, ayah_num, word_idx)
+        session['result'] = "No more hints. Already at the beginning of the surah!"
+        session['result_color'] = 'yellow'
 
-    print("Done with current ayah, prefixing words from previous ayah.")
+        return (phrase, ayah_num, word_idx)
 
     prev_ayah_words = ayah_num_to_ayah[prev_ayah_num].split(' ')
     prev_word_idx = len(prev_ayah_words) - 1
@@ -285,13 +285,11 @@ def before_request():
 
 @app.route("/", methods=['GET'])
 def index():
-    print("in / GET")
     session['easy_mode'] = False
     return get()
 
 @app.route("/easy", methods=['GET'])
 def index_easy():
-    print("in /easy GET")
     session['easy_mode'] = True
     return get()
 
@@ -306,13 +304,11 @@ def get():
 
 @app.route("/", methods=['POST'])
 def index_post():
-    print("in / POST")
     session['easy_mode'] = False
     return post()
 
 @app.route("/easy", methods=['POST'])
 def index_post_easy():
-    print("in /easy POST")
     session['easy_mode'] = True
     return post()
 
