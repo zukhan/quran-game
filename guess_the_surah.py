@@ -69,7 +69,7 @@ def prefix_ayah(phrase, surah_ayah_num):
 
     if not prev_ayah_num:
         session['result'] = "No more hints. Already at the beginning of the surah!"
-        session['result_color'] = 'yellow'
+        session['result_color'] = 'red'
 
         return (phrase, surah_ayah_num)
 
@@ -261,7 +261,10 @@ def load_new_phrase():
 def load_session_start_end_surah():
     start_surah = session.get('start_surah')
     end_surah = session.get('end_surah')
-    session['start_surah'] = surah_num_to_name['1'] if not start_surah else start_surah
+
+    default_start = '1' if not session['easy_mode'] else '100';
+    if not start_surah:
+        session['start_surah'] = surah_num_to_name[default_start]
     session['end_surah'] = surah_num_to_name['114'] if not end_surah else end_surah
 
 def render():
@@ -348,8 +351,9 @@ def post():
             score = session.get('score')
             session['score'] = score + 1 if score else 1
             surah_name = session['surah_name'].split(' ')[1]
-            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link}"
+            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link} ({surah_name})"
             session['result_color'] = "green"
+            session['guess'] = session['start_surah']
             load_new_phrase()
         else:
             session['result'] = "Incorrect. Try again."
