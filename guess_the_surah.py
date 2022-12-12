@@ -49,6 +49,9 @@ ayah_num_to_ayah = {}
 # { 1: '1 Al-Fatihah', 2: '2 Al-Baqarah' }
 surah_num_to_name = {}
 
+# { 1: '١ الفاتحة', 2: '٢ البقرة' }
+surah_num_to_arabic_name = {}
+
 # { 1: ['1:1', '1:2', '1:3'], 2: ['2:1'] }
 surah_num_to_ayah_nums = {}
 
@@ -57,6 +60,12 @@ surah_num_to_phrases = {}
 
 # { 'الْعَالَمِينَ' : '2:30' }
 phrase_to_ayah_num = {}
+
+# { '١ الفاتحة': '1 Al-Fatihah' }
+surah_name_ar_to_en = {}
+
+# { '1 Al-Fatihah': '١ الفاتحة' }
+surah_name_en_to_ar = {}
 
 #
 # Adds another ayah before the current ayah
@@ -216,7 +225,7 @@ def bootstrap_indexes():
 
     global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, \
             surah_num_to_ayah_nums, surah_num_to_name, ayah_num_to_ayah, \
-            surah_num_to_phrases, phrase_to_ayah_num
+            surah_num_to_arabic_name, surah_num_to_phrases, phrase_to_ayah_num
 
     with open(f"{dir}/juz_num_to_ayah_range.json") as file:
         juz_num_to_ayah_range = json.loads(file.read())
@@ -230,6 +239,9 @@ def bootstrap_indexes():
     with open(f"{dir}/surah_num_to_name.json") as file:
         surah_num_to_name = json.loads(file.read())
 
+    with open(f"{dir}/surah_num_to_arabic_name.json", encoding="utf_8") as file:
+        surah_num_to_arabic_name = json.loads(file.read())
+
     with open(f"{dir}/ayah_num_to_ayah.json", encoding="utf_8") as file:
         ayah_num_to_ayah = json.loads(file.read())
 
@@ -238,6 +250,38 @@ def bootstrap_indexes():
 
     with open(f"{dir}/phrase_to_ayah_num.json", encoding="utf_8") as file:
         phrase_to_ayah_num = json.loads(file.read())
+
+    for surah_num in range(1, 115):
+        en_surah_name = surah_num_to_name[str(surah_num)]
+        ar_surah_name = surah_num_to_arabic_name[str(surah_num)]
+
+        surah_name_en_to_ar[en_surah_name] = ar_surah_name
+        surah_name_ar_to_en[ar_surah_name] = en_surah_name
+
+def get_surah_name_from_num(surah_num):
+    surah_num = str(surah_num)
+    if session['arabic_mode']:
+        return surah_num_to_arabic_name[surah_num]
+    return surah_num_to_name[surah_num]
+
+def get_surah_num_from_name(surah_name):
+    surah_map = surah_num_to_name
+    if session['arabic_mode']:
+        surah_map = surah_num_to_arabic_name
+    return list(surah_map.keys())[list(surah_map.values()).index(surah_name)]
+
+def create_surah_name_to_num_map():
+    surah_map = {}
+    for surah_num, surah_name in surah_num_to_name.items():
+        surah_map[surah_name] = surah_num
+    for surah_num, surah_name in surah_num_to_arabic_name.items():
+        surah_map[surah_name] = surah_num
+    return surah_map
+
+def get_surah_names():
+    if session['arabic_mode']:
+        return list(surah_num_to_arabic_name.values())
+    return list(surah_num_to_name.values())
 
 def load_new_phrase():
     load_session_start_end_surah()
@@ -250,7 +294,8 @@ def load_new_phrase():
     else:
         surah_num, ayah_num, phrase = get_random_phrase(start_surah, end_surah)
 
-    session['surah_name'] = surah_num_to_name[str(surah_num)]
+    session['surah_name'] = get_surah_name_from_num(surah_num)
+    session['arabic_surah_name'] = surah_num_to_arabic_name[str(surah_num)]
     session['surah_num'] = str(surah_num)
     session['ayah_num'] = str(ayah_num)
     session['unique_phrase'] = phrase
@@ -264,15 +309,16 @@ def load_session_start_end_surah():
 
     default_start = '1' if not session['easy_mode'] else '100';
     if not start_surah:
-        session['start_surah'] = surah_num_to_name[default_start]
-    session['end_surah'] = surah_num_to_name['114'] if not end_surah else end_surah
+        session['start_surah'] = get_surah_name_from_num(default_start)
+    session['end_surah'] = get_surah_name_from_num('114') if not end_surah else end_surah
 
 def render():
     load_session_start_end_surah()
     start = session['start_surah']
     end = session['end_surah']
-    surah_names = list(surah_num_to_name.values())
-    return render_template("home.html", surah_names=surah_names, start=start, end=end)
+    surah_names = get_surah_names()
+    surah_map = create_surah_name_to_num_map()
+    return render_template("home.html", surah_names=surah_names, surah_map=surah_map, start=start, end=end)
 
 def build_quran_com_link(unique_phrase):
     surah_num = session['surah_num']
@@ -280,15 +326,40 @@ def build_quran_com_link(unique_phrase):
     surah_ayah_num = f"{surah_num}:{ayah_num}"
     return f"<a href=\"https://quran.com/{surah_num}/{ayah_num}\" target=\"_blank\">{surah_ayah_num}</a>"
 
+def convert_surah_names(arabic_mode):
+    surah_name_map = surah_name_en_to_ar if arabic_mode else surah_name_ar_to_en
+
+    first_item = next(iter( surah_name_map.items() ))
+
+    session['start_surah'] = surah_name_map[session['start_surah']]
+    session['end_surah'] = surah_name_map[session['end_surah']]
+    if session.get('guess'):
+        session['guess'] = surah_name_map[session['guess']]
+
 @app.before_request
 def before_request():
     session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(minutes=30)
     session.modified = True
 
+    prev_arabic_mode = session.get('arabic_mode')
+    if 'mode' in request.args:
+        session['easy_mode'] = request.args['mode'] != 'hard'
+    if 'locale' in request.args:
+        arabic_mode = request.args['locale'] == 'ar'
+        session['arabic_mode'] = arabic_mode
+
+        if prev_arabic_mode != None and prev_arabic_mode != arabic_mode:
+            convert_surah_names(arabic_mode)
+
+    arabic_mode = session.get('arabic_mode')
+    session['arabic_mode'] = False if arabic_mode == None else arabic_mode
+
+    easy_mode = session.get('easy_mode')
+    session['easy_mode'] = True if easy_mode == None else easy_mode
+
 @app.route("/", methods=['GET'])
 def index():
-    session['easy_mode'] = False
     return get()
 
 @app.route("/easy", methods=['GET'])
@@ -297,6 +368,9 @@ def index_easy():
     return get()
 
 def get():
+    if 'locale' in request.args and session.get('phrase'):
+        return render()
+
     score = session.get('score')
     session['score'] = score if score else 0
 
@@ -307,7 +381,6 @@ def get():
 
 @app.route("/", methods=['POST'])
 def index_post():
-    session['easy_mode'] = False
     return post()
 
 @app.route("/easy", methods=['POST'])

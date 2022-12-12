@@ -20,6 +20,9 @@ ayah_num_to_ayah = {}
 # { 1: '1 Al-Fatihah', 2: '2 Al-Baqarah' }
 surah_num_to_name = {}
 
+# { 1: '١الفاتحة', 2: '٢البقرة' }
+surah_num_to_arabic_name = {}
+
 # { 1: ['1:1', '1:2', '1:3'], 2: ['2:1'] }
 surah_num_to_ayah_nums = {}
 
@@ -41,6 +44,17 @@ def populate_surah_names():
             surah_num = int(tokens[0])
             surah_name = tokens[1].strip()
             surah_num_to_name[surah_num] = surah_name
+
+#
+# This function populates the surah number to arabic surah name map.
+#
+def populate_arabic_surah_names():
+    with open("resources/arabic_surah_names.csv") as file:
+        for line in file:
+            tokens = line.strip().split(',')
+            surah_num = int(tokens[0])
+            surah_name = tokens[1].strip()
+            surah_num_to_arabic_name[surah_num] = surah_name
 
 #
 # This function populates the map which defines the juz boundaries (starting
@@ -256,6 +270,9 @@ def dump_lookup_maps_to_file():
     with open(f"{dir}/surah_num_to_name.json", 'w') as file:
         file.write(json.dumps(surah_num_to_name, indent=2))
 
+    with open(f"{dir}/surah_num_to_arabic_name.json", 'w') as file:
+        file.write(json.dumps(surah_num_to_arabic_name, ensure_ascii=False, indent=2))
+
     with open(f"{dir}/surah_num_to_phrases.json", 'w') as file:
         file.write(json.dumps(surah_num_to_phrases, cls=SetEncoder, ensure_ascii=False, indent=2))
 
@@ -264,6 +281,7 @@ def dump_lookup_maps_to_file():
         file.write(json.dumps(sorted_phrase_to_ayah_num, ensure_ascii=False, indent=2))
 
 populate_surah_names()
+populate_arabic_surah_names()
 populate_juz_maps()
 parse_quran()
 dump_lookup_maps_to_file()

@@ -6,26 +6,32 @@
 
 <br />
 
-{% if session['easy_mode'] %}
-  <p>Too easy? Switch to <a href="/">hard mode</a>.</p>
+{% if session['arabic_mode'] %}
+  <span>Language: <a href="/?locale=en">English</a> | العربية</span>
 {% else %}
-  <p>Too hard? Switch to <a href="/easy">easy mode</a>.</p>
+  <span>Language: English | <a href="/?locale=ar">العربية</a></span>
+{% endif %}
+
+{% if session['easy_mode'] %}
+    <p>Too easy? Switch to <a href="/?mode=hard">hard mode</a>.</p>
+{% else %}
+    <p>Too hard? Switch to <a href="/?mode=easy">easy mode</a>.</p>
 {% endif %}
 
 <p style="color:green">Score: {{session['score']}}</p>
 
-{% if session['easy_mode'] %}
-<form method="post" action="/easy">
-{% else %}
 <form method="post" action="/">
-{% endif %}
   <table>
     <tr>
       <td>Start Surah</td>
       <td>
+      {% if session['arabic_mode'] %}
+        <select class='arabic' name="start_surah" onchange="this.form.submit()">
+      {% else %}
         <select name="start_surah" onchange="this.form.submit()">
+      {% endif %}
           {% for surah_name in surah_names
-              if surah_name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int
+            if surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
           %}
             {% if surah_name == start %}
               <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
@@ -39,9 +45,13 @@
     <tr>
       <td>End Surah</td>
       <td>
+      {% if session['arabic_mode'] %}
+        <select class='arabic' name="end_surah" onchange="this.form.submit()">
+      {% else %}
         <select name="end_surah" onchange="this.form.submit()">
+      {% endif %}
           {% for surah_name in surah_names
-              if surah_name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int
+            if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int
           %}
             {% if surah_name == end %}
               <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
@@ -58,7 +68,11 @@
   <h4>{{ session['phrase'] }}</h4>
 
   <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
-  <select name="surah">
+  {% if session['arabic_mode'] %}
+    <select class='arabic' name="surah">
+  {% else %}
+    <select name="surah">
+  {% endif %}
     {% for surah_name in surah_names
         if surah_name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int and
             surah_name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int

@@ -224,6 +224,12 @@ input[type="button"].button-primary:focus {
 
 /* Forms
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
+
+.arabic {
+  text-align-last: right;
+  direction: rtl;
+}
+
 input[type="email"],
 input[type="number"],
 input[type="search"],
