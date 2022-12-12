@@ -226,7 +226,7 @@ input[type="button"].button-primary:focus {
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
 
 .arabic {
-  text-align-last: right;
+  text-align: right;
   direction: rtl;
 }
 
