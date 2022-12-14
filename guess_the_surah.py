@@ -338,6 +338,8 @@ def convert_surah_names(arabic_mode):
         session['end_surah'] = surah_name_map[session['end_surah']]
     if session.get('guess'):
         session['guess'] = surah_name_map[session['guess']]
+    if session.get('surah_name'):
+        session['surah_name'] = surah_name_map[session['surah_name']]
 
 @app.before_request
 def before_request():
@@ -426,7 +428,8 @@ def post():
         if guess.strip() == session['surah_name']:
             score = session.get('score')
             session['score'] = score + 1 if score else 1
-            surah_name = session['surah_name'].split(' ')[1]
+            surah_name_tokens = session['surah_name'].split(' ')
+            surah_name = surah_name_tokens[len(surah_name_tokens) - 1]
             session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link} ({surah_name})"
             session['result_color'] = "green"
             session['guess'] = session['start_surah']

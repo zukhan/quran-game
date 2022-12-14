@@ -62,8 +62,8 @@
   <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
     <select class={{language}} name="surah">
     {% for surah_name in surah_names
-        if surah_name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int and
-            surah_name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int
+        if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int and
+            surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
     %}
       {% if surah_name == session['guess'] %}
         <option class={{language}} value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
