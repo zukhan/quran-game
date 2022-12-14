@@ -224,12 +224,6 @@ input[type="button"].button-primary:focus {
 
 /* Forms
 –––––––––––––––––––––––––––––––––––––––––––––––––– */
-
-.arabic {
-  text-align: right;
-  direction: rtl;
-}
-
 input[type="email"],
 input[type="number"],
 input[type="search"],
@@ -443,4 +437,11 @@ there.
   display: none;
   overflow: hidden;
   background-color: #f1f1f1;
+}
+
+.arabic {
+  text-align: right;
+  text-align-last: right;
+  -moz-text-align-last: right;
+  direction: rtl;
 }

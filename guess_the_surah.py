@@ -286,8 +286,8 @@ def get_surah_names():
 def load_new_phrase():
     load_session_start_end_surah()
 
-    start_surah = int(session['start_surah'].split(' ')[0])
-    end_surah = int(session['end_surah'].split(' ')[0])
+    start_surah = int(get_surah_num_from_name(session['start_surah']))
+    end_surah = int(get_surah_num_from_name(session['end_surah']))
 
     if session['easy_mode']:
         surah_num, ayah_num, phrase = get_random_ayah(start_surah, end_surah)
@@ -316,9 +316,11 @@ def render():
     load_session_start_end_surah()
     start = session['start_surah']
     end = session['end_surah']
+    language = "arabic" if session['arabic_mode'] else "english"
     surah_names = get_surah_names()
     surah_map = create_surah_name_to_num_map()
-    return render_template("home.html", surah_names=surah_names, surah_map=surah_map, start=start, end=end)
+    return render_template("home.html", surah_names=surah_names, surah_map=surah_map, \
+                           language=language, start=start, end=end)
 
 def build_quran_com_link(unique_phrase):
     surah_num = session['surah_num']
@@ -331,8 +333,9 @@ def convert_surah_names(arabic_mode):
 
     first_item = next(iter( surah_name_map.items() ))
 
-    session['start_surah'] = surah_name_map[session['start_surah']]
-    session['end_surah'] = surah_name_map[session['end_surah']]
+    if session.get('start_surah') and session.get('end_surah'):
+        session['start_surah'] = surah_name_map[session['start_surah']]
+        session['end_surah'] = surah_name_map[session['end_surah']]
     if session.get('guess'):
         session['guess'] = surah_name_map[session['guess']]
 

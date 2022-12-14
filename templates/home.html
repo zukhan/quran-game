@@ -25,18 +25,14 @@
     <tr>
       <td>Start Surah</td>
       <td>
-      {% if session['arabic_mode'] %}
-        <select class='arabic' name="start_surah" onchange="this.form.submit()">
-      {% else %}
-        <select name="start_surah" onchange="this.form.submit()">
-      {% endif %}
+        <select class={{language}} name="start_surah" onchange="this.form.submit()">
           {% for surah_name in surah_names
             if surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
           %}
             {% if surah_name == start %}
-              <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
+              <option class={{language}} value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
-              <option value="{{surah_name}}">{{surah_name}}</option>"
+              <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>"
             {% endif %}
           {% endfor %}
         </select>
@@ -45,18 +41,14 @@
     <tr>
       <td>End Surah</td>
       <td>
-      {% if session['arabic_mode'] %}
-        <select class='arabic' name="end_surah" onchange="this.form.submit()">
-      {% else %}
-        <select name="end_surah" onchange="this.form.submit()">
-      {% endif %}
+        <select class={{language}} name="end_surah" onchange="this.form.submit()">
           {% for surah_name in surah_names
             if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int
           %}
             {% if surah_name == end %}
-              <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
+              <option class={{language}} value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
-              <option value="{{surah_name}}">{{surah_name}}</option>"
+              <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>"
             {% endif %}
           {% endfor %}
         </select>
@@ -68,19 +60,15 @@
   <h4>{{ session['phrase'] }}</h4>
 
   <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
-  {% if session['arabic_mode'] %}
-    <select class='arabic' name="surah">
-  {% else %}
-    <select name="surah">
-  {% endif %}
+    <select class={{language}} name="surah">
     {% for surah_name in surah_names
         if surah_name.split(' ')[0]|int >= session['start_surah'].split(' ')[0]|int and
             surah_name.split(' ')[0]|int <= session['end_surah'].split(' ')[0]|int
     %}
       {% if surah_name == session['guess'] %}
-        <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
+        <option class={{language}} value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
       {% else %}
-        <option value="{{surah_name}}">{{surah_name}}</option>"
+        <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>"
       {% endif %}
     {% endfor %}
   </select>
