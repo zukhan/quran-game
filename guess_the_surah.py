@@ -145,7 +145,12 @@ def get_surah_num_from_name(surah_name):
     surah_map = surah_num_to_name
     if session['arabic_mode']:
         surah_map = surah_num_to_arabic_name
-    return list(surah_map.keys())[list(surah_map.values()).index(surah_name)]
+
+    keys = list(surah_map.keys())
+    surah_idx = list(surah_map.values()).index(surah_name)
+    if not keys[surah_idx]:
+        print(f"Something is wrong... surah_idx = '{surah_idx}', keys = '{keys}', surah_map = '{surah_map}'")
+    return keys[surah_idx]
 
 def create_surah_name_to_num_map():
     surah_map = {}
