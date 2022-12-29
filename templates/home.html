@@ -59,8 +59,7 @@
   <strong><p>Which surah is this from?</p></strong>
   <h4>{{ session['phrase'] }}</h4>
 
-  <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
-  <select class={{language}} name="surah" onchange="this.form.submit()">
+  <select style="margin-bottom:10px" class={{language}} name="surah" onchange="this.form.submit()">
     <option class={{language}} value="Select Surah" SELECTED>Select Surah</option>
     {% for surah_name in surah_names
       if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int and
@@ -70,6 +69,7 @@
     {% endfor %}
   </select>
   <br />
+  <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
   <noscript><input type="submit" value="Guess" name="guess"/></noscript>
   <input type="submit" value="Hint" name="hint"/>
   <input type="submit" value="Skip" name="skip"/>
@@ -80,8 +80,7 @@
   <br />
   <ol>
     <li>Select the "Start Surah" and "End Surah" at the top of the page.</li>
-    <li>Select the answer from the list of surahs that is above the "Guess" button.</li>
-    <li>Click on the "Guess" button to check your answer.</li>
+    <li>Click on "Select Surah" to guess the surah.</li>
     {% if session['easy_mode'] %}
       <li>Click on the "Hint" button to add another ayah to make it easier to guess.</li>
       <li>Click on the "Skip" button to move onto the next ayah if you can't figure out the answer.</li>
