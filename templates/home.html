@@ -57,12 +57,10 @@
   </table>
 
   <strong><p>Which surah is this from?</p></strong>
+  <h4>{{ session['phrase'] }}</h4>
 
   {% if session['translation'] %}
-    <h4 style="margin-bottom:0">{{ session['phrase'] }}</h4>
     <p>{{ session['translation']|safe }}</p>
-  {% else %}
-    <h4>{{ session['phrase'] }}</h4>
   {% endif %}
 
   <select style="margin-bottom:10px" class={{language}} name="surah" onchange="this.form.submit()">
