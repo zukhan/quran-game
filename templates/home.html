@@ -60,20 +60,17 @@
   <h4>{{ session['phrase'] }}</h4>
 
   <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
-    <select class={{language}} name="surah">
+  <select class={{language}} name="surah" onchange="this.form.submit()">
+    <option class={{language}} value="Select Surah" SELECTED>Select Surah</option>
     {% for surah_name in surah_names
-        if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int and
-            surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
+      if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int and
+          surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
     %}
-      {% if surah_name == session['guess'] %}
-        <option class={{language}} value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
-      {% else %}
-        <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>"
-      {% endif %}
+      <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>
     {% endfor %}
   </select>
   <br />
-  <input type="submit" value="Guess" name="guess"/>
+  <noscript><input type="submit" value="Guess" name="guess"/></noscript>
   <input type="submit" value="Hint" name="hint"/>
   <input type="submit" value="Skip" name="skip"/>
 </form>

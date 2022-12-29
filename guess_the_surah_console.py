@@ -3,9 +3,25 @@
 
 Displays a minimal length unique phrase from the Qur'an and asks you to guess
 which surah the phrase is from. You can specify the starting and ending surahs
-that you would like to be tested on.
+that you would like to be tested on. To play, run the following command from
+the command line:
 
-www.qurangame.com
+    $ python3 guess_the_surah.py <start_surah> <end_surah>
+
+<start_surah> - (optional, default 0) starting surah number
+<end_surah> - (optional, default 114) ending surah number
+
+For example, if you want unique phrases starting from surah 78 until surah 90,
+run:
+
+    $ python3 guess_the_surah.py 78 90
+
+Actions:
+
+    'help' - see available actions with descriptions
+    'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
+    'skip' or 's' - displays the answer and moves onto the next phrase
+    'quit' or 'q' - exits the program
 '''
 
 import os
@@ -117,6 +133,52 @@ def add_word_to_phrase(phrase, ayah_num, word_idx):
 
     return (phrase, prev_ayah_num, prev_word_idx - 1)
 
+def print_help_message():
+    print(
+'''
+Available actions:
+    'help' - see available actions with descriptions
+    'hint' or 'h' - adds an extra word to the phrase to make it easier to guess
+    'skip' or 's' - displays the answer and moves onto the next phrase
+    'quit' - exits the program
+'''
+    )
+
+def process_input(surah_num, phrase):
+    guess = input(f"\nWhich surah is this from?\n{phrase}\n> ").strip()
+
+    ayah_num, ayah_idx = None, None
+    num_wrong = 0
+    while guess != str(surah_num):
+
+        if guess == 'quit' or guess == 'q':
+            sys.exit("See you soon. Don't forget to revise!")
+
+        if guess == 'help':
+            print_help_message()
+
+        elif guess == 'hint' or guess == 'h':
+            if session['easy_mode']:
+                (phrase, ayah_num) = prefix_ayah(phrase, ayah_num)
+            else:
+                (phrase, ayah_num, ayah_idx) = \
+                        add_word_to_phrase(phrase, ayah_num, ayah_idx)
+
+        elif guess == 'skip' or guess == 's':
+            print(f"The phrase was from surah {surah_num}")
+            break
+
+        else:
+            num_wrong += 1
+
+            err_msg = "Incorrect, try again."
+            hint_msg = f"{err_msg} Type 'hint' to add a word to the phrase."
+
+            print(err_msg if num_wrong < 3 else hint_msg)
+
+        guess = input(f"{phrase}\n> ").strip()
+    return guess
+
 def get_random_phrase(start_surah, end_surah):
     surah_num = str(random.randint(start_surah, end_surah))
     phrase = random.choice(surah_num_to_phrases[surah_num])
@@ -134,6 +196,67 @@ def get_random_ayah(start_surah, end_surah):
         ayah_num = surah_ayah_num.split(':')[1]
 
     return (surah_num, ayah_num, ayah_num_to_ayah[surah_ayah_num])
+
+#
+# The main loop that runs the game in the console
+#
+def guess_the_surah():
+    start_surah = 0 if not len(sys.argv) > 1 else int(sys.argv[1])
+    end_surah = 114 if not len(sys.argv) > 2 else int(sys.argv[2])
+
+    while True:
+        surah_num, phrase = get_random_phrase(start_surah, end_surah)
+        guess = process_input(surah_num, phrase)
+
+        if guess == str(surah_num):
+            print("Correct!")
+
+#
+# Reads the lookup indexes from files and stores them in memory. The indexes
+# are built by 'build_indexes.py' file which parses the Qur'an, builds the
+# indexes, and outputs them to a file, which can then be used during
+# game initialization.
+#
+def bootstrap_indexes():
+    if os.path.exists("resources/indexes"):
+        dir = "resources/indexes"
+    else:
+        dir = "/home/qurangame/mysite/quran-utils/resources/indexes"
+
+    global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, \
+            surah_num_to_ayah_nums, surah_num_to_name, ayah_num_to_ayah, \
+            surah_num_to_arabic_name, surah_num_to_phrases, phrase_to_ayah_num
+
+    with open(f"{dir}/juz_num_to_ayah_range.json") as file:
+        juz_num_to_ayah_range = json.loads(file.read())
+
+    with open(f"{dir}/ayah_num_to_prev_ayah_num.json") as file:
+        ayah_num_to_prev_ayah_num = json.loads(file.read())
+
+    with open(f"{dir}/surah_num_to_ayah_nums.json") as file:
+        surah_num_to_ayah_nums = json.loads(file.read())
+
+    with open(f"{dir}/surah_num_to_name.json") as file:
+        surah_num_to_name = json.loads(file.read())
+
+    with open(f"{dir}/surah_num_to_arabic_name.json", encoding="utf_8") as file:
+        surah_num_to_arabic_name = json.loads(file.read())
+
+    with open(f"{dir}/ayah_num_to_ayah.json", encoding="utf_8") as file:
+        ayah_num_to_ayah = json.loads(file.read())
+
+    with open(f"{dir}/surah_num_to_phrases.json", encoding="utf_8") as file:
+        surah_num_to_phrases = json.loads(file.read())
+
+    with open(f"{dir}/phrase_to_ayah_num.json", encoding="utf_8") as file:
+        phrase_to_ayah_num = json.loads(file.read())
+
+    for surah_num in range(1, 115):
+        en_surah_name = surah_num_to_name[str(surah_num)]
+        ar_surah_name = surah_num_to_arabic_name[str(surah_num)]
+
+        surah_name_en_to_ar[en_surah_name] = ar_surah_name
+        surah_name_ar_to_en[ar_surah_name] = en_surah_name
 
 def get_surah_name_from_num(surah_num):
     surah_num = str(surah_num)
@@ -280,7 +403,6 @@ def post():
 
     form_start = request.form.get('start_surah')
     form_end = request.form.get('end_surah')
-    guessed_surah = request.form.get('surah')
 
     session['result'] = ''
 
@@ -303,10 +425,11 @@ def post():
         session['result_color'] = "red"
         load_new_phrase()
 
-    elif request.form.get('guess') == 'Guess' or guessed_surah != "Select Surah":
-        session['guess'] = guessed_surah
+    elif request.form.get('guess') == 'Guess':
+        guess = request.form['surah']
+        session['guess'] = guess
 
-        if guessed_surah.strip() == session['surah_name']:
+        if guess.strip() == session['surah_name']:
             score = session.get('score')
             session['score'] = score + 1 if score else 1
             surah_name = get_surah_name()
@@ -337,53 +460,6 @@ def post():
         session['word_idx'] = word_idx
 
     return render()
-
-#
-# Reads the lookup indexes from files and stores them in memory. The indexes
-# are built by 'build_indexes.py' file which parses the Qur'an, builds the
-# indexes, and outputs them to a file, which can then be used during
-# game initialization.
-#
-def bootstrap_indexes():
-    if os.path.exists("resources/indexes"):
-        dir = "resources/indexes"
-    else:
-        dir = "/home/qurangame/mysite/quran-utils/resources/indexes"
-
-    global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, \
-            surah_num_to_ayah_nums, surah_num_to_name, ayah_num_to_ayah, \
-            surah_num_to_arabic_name, surah_num_to_phrases, phrase_to_ayah_num
-
-    with open(f"{dir}/juz_num_to_ayah_range.json") as file:
-        juz_num_to_ayah_range = json.loads(file.read())
-
-    with open(f"{dir}/ayah_num_to_prev_ayah_num.json") as file:
-        ayah_num_to_prev_ayah_num = json.loads(file.read())
-
-    with open(f"{dir}/surah_num_to_ayah_nums.json") as file:
-        surah_num_to_ayah_nums = json.loads(file.read())
-
-    with open(f"{dir}/surah_num_to_name.json") as file:
-        surah_num_to_name = json.loads(file.read())
-
-    with open(f"{dir}/surah_num_to_arabic_name.json", encoding="utf_8") as file:
-        surah_num_to_arabic_name = json.loads(file.read())
-
-    with open(f"{dir}/ayah_num_to_ayah.json", encoding="utf_8") as file:
-        ayah_num_to_ayah = json.loads(file.read())
-
-    with open(f"{dir}/surah_num_to_phrases.json", encoding="utf_8") as file:
-        surah_num_to_phrases = json.loads(file.read())
-
-    with open(f"{dir}/phrase_to_ayah_num.json", encoding="utf_8") as file:
-        phrase_to_ayah_num = json.loads(file.read())
-
-    for surah_num in range(1, 115):
-        en_surah_name = surah_num_to_name[str(surah_num)]
-        ar_surah_name = surah_num_to_arabic_name[str(surah_num)]
-
-        surah_name_en_to_ar[en_surah_name] = ar_surah_name
-        surah_name_ar_to_en[ar_surah_name] = en_surah_name
 
 #
 # To run in console mode, comment out the main method below and uncomment the
