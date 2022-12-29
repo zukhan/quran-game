@@ -45,6 +45,9 @@ surah_num_to_phrases = {}
 # { 'الْعَالَمِينَ' : '2:30' }
 phrase_to_ayah_num = {}
 
+# { '1:1': 'Guide us to the straight path -' }
+ayah_num_to_translation = {}
+
 # { '١ الفاتحة': '1 Al-Fatihah' }
 surah_name_ar_to_en = {}
 
@@ -180,10 +183,12 @@ def load_new_phrase():
     session['arabic_surah_name'] = surah_num_to_arabic_name[str(surah_num)]
     session['surah_num'] = str(surah_num)
     session['ayah_num'] = str(ayah_num)
+    session['surah_ayah_num'] = f"{surah_num}:{ayah_num}"
     session['unique_phrase'] = phrase
     session['phrase'] = phrase
     session['hint_ayah_num'] = None
     session['word_idx'] = None
+    session['translation'] = None
 
 def load_session_start_end_surah():
     start_surah = session.get('start_surah')
@@ -341,6 +346,9 @@ def post():
         session['hint_ayah_num'] = hint_ayah_num
         session['word_idx'] = word_idx
 
+    elif request.form.get('translate') == 'Translate':
+        session['translation'] = ayah_num_to_translation[session["surah_ayah_num"]]
+
     return render()
 
 #
@@ -357,7 +365,8 @@ def bootstrap_indexes():
 
     global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, \
             surah_num_to_ayah_nums, surah_num_to_name, ayah_num_to_ayah, \
-            surah_num_to_arabic_name, surah_num_to_phrases, phrase_to_ayah_num
+            surah_num_to_arabic_name, surah_num_to_phrases, phrase_to_ayah_num, \
+            ayah_num_to_translation
 
     with open(f"{dir}/juz_num_to_ayah_range.json") as file:
         juz_num_to_ayah_range = json.loads(file.read())
@@ -370,6 +379,9 @@ def bootstrap_indexes():
 
     with open(f"{dir}/surah_num_to_name.json") as file:
         surah_num_to_name = json.loads(file.read())
+
+    with open(f"{dir}/ayah_num_to_translation.json") as file:
+        ayah_num_to_translation = json.loads(file.read())
 
     with open(f"{dir}/surah_num_to_arabic_name.json", encoding="utf_8") as file:
         surah_num_to_arabic_name = json.loads(file.read())
@@ -390,14 +402,6 @@ def bootstrap_indexes():
         surah_name_en_to_ar[en_surah_name] = ar_surah_name
         surah_name_ar_to_en[ar_surah_name] = en_surah_name
 
-#
-# To run in console mode, comment out the main method below and uncomment the
-# last lines of this file.
-#
 bootstrap_indexes()
 if __name__ == '__main__':
     app.run()
-
-# This method runs the game in console mode
-#bootstrap_indexes()
-#guess_the_surah()

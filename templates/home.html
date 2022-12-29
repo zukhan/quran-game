@@ -59,6 +59,10 @@
   <strong><p>Which surah is this from?</p></strong>
   <h4>{{ session['phrase'] }}</h4>
 
+  {% if session['translation'] %}
+    <p>{{ session['translation']|safe }}</p>
+  {% endif %}
+
   <select style="margin-bottom:10px" class={{language}} name="surah" onchange="this.form.submit()">
     <option class={{language}} value="Select Surah" SELECTED>Select Surah</option>
     {% for surah_name in surah_names
@@ -72,6 +76,7 @@
   <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
   <noscript><input type="submit" value="Guess" name="guess"/></noscript>
   <input type="submit" value="Hint" name="hint"/>
+  <input type="submit" value="Translate" name="translate"/>
   <input type="submit" value="Skip" name="skip"/>
 </form>
 

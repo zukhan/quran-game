@@ -32,6 +32,9 @@ surah_num_to_phrases = {}
 # { 'الْعَالَمِينَ' : '2:30' }
 phrase_to_ayah_num = {}
 
+# { '1:1': 'Guide us to the straight path -' }
+ayah_num_to_translation = {}
+
 basmalah = 'بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ'
 
 #
@@ -238,6 +241,16 @@ def parse_quran():
                 del phrase_to_ayah_num[phrase]
                 surah_num_to_phrases[surah_num].remove(phrase)
 
+def parse_translation():
+    with open("resources/en_sahih.txt") as file:
+        lines = [l.strip() for l in file if l.strip() and not l.startswith('#')]
+
+    for line in lines:
+        # 'line' has the following format: "114|3|The God of mankind,"
+        tokens = line.split('|')
+        ayah_num = f"{tokens[0]}:{tokens[1]}"
+        ayah_num_to_translation[ayah_num] = tokens[2]
+
 #
 # json.dumps(...) does not handle sets without a custom encoder
 #
@@ -267,6 +280,9 @@ def dump_lookup_maps_to_file():
     with open(f"{dir}/ayah_num_to_ayah.json", 'w') as file:
         file.write(json.dumps(ayah_num_to_ayah, ensure_ascii=False, indent=2))
 
+    with open(f"{dir}/ayah_num_to_translation.json", 'w') as file:
+        file.write(json.dumps(ayah_num_to_translation, indent=2))
+
     with open(f"{dir}/surah_num_to_name.json", 'w') as file:
         file.write(json.dumps(surah_num_to_name, indent=2))
 
@@ -284,4 +300,5 @@ populate_surah_names()
 populate_arabic_surah_names()
 populate_juz_maps()
 parse_quran()
+parse_translation()
 dump_lookup_maps_to_file()
