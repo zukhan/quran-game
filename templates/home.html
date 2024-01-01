@@ -6,49 +6,50 @@
 
 <br />
 
-{% if session['arabic_mode'] %}
-  <p>Language: <a href="/?locale=en">English</a> | العربية</p>
-{% else %}
-  <p>Language: English | <a href="/?locale=ar">العربية</a></p>
-{% endif %}
-
+<p>{{ _("Language:") }} 
+  {% if session['arabic_mode'] %}
+    <a href="/?locale=en">English</a> | العربية
+  {% else %}
+  English | <a href="/?locale=ar">العربية</a>
+  {% endif %}
+</p>
 {% if session['easy_mode'] %}
-    <p>Too easy? Switch to <a href="/?mode=hard">hard mode</a>.</p>
+    <p>{{_("Too easy? Switch to")}} <a href="/?mode=hard">{{_("hard mode")}}</a>.</p>
 {% else %}
-    <p>Too hard? Switch to <a href="/?mode=easy">easy mode</a>.</p>
+    <p>{{_("Too hard? Switch to")}} <a href="/?mode=easy">{{_("easy mode")}}</a>.</p>
 {% endif %}
 
-<p style="color:green">Score: {{session['score']}}</p>
+<p style="color:green">{{_("Score:")}} {{session['score']}}</p>
 
 <form method="post" action="/">
   <table>
     <tr>
-      <td>Start Surah</td>
+      <td>{{_("Start Surah")}}</td>
       <td>
-        <select class={{language}} name="start_surah" onchange="this.form.submit()">
+        <select name="start_surah" onchange="this.form.submit()">
           {% for surah_name in surah_names
             if surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
           %}
             {% if surah_name == start %}
-              <option class={{language}} value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
+              <option value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
-              <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>"
+              <option value="{{surah_name}}">{{surah_name}}</option>"
             {% endif %}
           {% endfor %}
         </select>
       </td>
     </tr>
     <tr>
-      <td>End Surah</td>
+      <td>{{_("End Surah")}}</td>
       <td>
-        <select class={{language}} name="end_surah" onchange="this.form.submit()">
+        <select  name="end_surah" onchange="this.form.submit()">
           {% for surah_name in surah_names
             if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int
           %}
             {% if surah_name == end %}
-              <option class={{language}} value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
+              <option  value="{{surah_name}}" SELECTED>{{surah_name}}</option>"
             {% else %}
-              <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>"
+              <option  value="{{surah_name}}">{{surah_name}}</option>"
             {% endif %}
           {% endfor %}
         </select>
@@ -56,47 +57,49 @@
     </tr>
   </table>
 
-  <strong><p>Which surah is this from?</p></strong>
+  <strong><p>{{_("Which surah is this from?")}}</p></strong>
   <h4>{{ session['phrase'] }}</h4>
 
   {% if session['translation'] %}
     <p>{{ session['translation']|safe }}</p>
   {% endif %}
 
-  <select style="margin-bottom:10px" class={{language}} name="surah" onchange="this.form.submit()">
-    <option class={{language}} value="Select Surah" SELECTED>Select Surah</option>
+  <select style="margin-bottom:10px"  name="surah" onchange="this.form.submit()">
+    <option  value="Select Surah" SELECTED>{{_("Select Surah")}}</option>
     {% for surah_name in surah_names
       if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int and
           surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
     %}
-      <option class={{language}} value="{{surah_name}}">{{surah_name}}</option>
+      <option  value="{{surah_name}}">{{surah_name}}</option>
     {% endfor %}
   </select>
   <br />
   <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
-  <noscript><input type="submit" value="Guess" name="guess"/></noscript>
-  <input type="submit" value="Hint" name="hint"/>
-  <input type="submit" value="Translate" name="translate"/>
-  <input type="submit" value="Skip" name="skip"/>
+  <noscript><input type="submit" value="{{_('Guess')}}" name="guess"/></noscript>
+  <input type="submit" value="{{_('Hint')}}" name="hint"/>
+  {% if not session['arabic_mode'] %}
+  <input type="submit" value="{{_('Translate')}}" name="translate"/>
+  {% endif %}
+  <input type="submit" value="{{_('Skip')}}" name="skip"/>
 </form>
 
-<button type="button" class="collapsible">How To Play</button>
+<button type="button" class="collapsible">{{_("How To Play")}}</button>
 <div class="content">
   <br />
   <ol>
-    <li>Select the "Start Surah" and "End Surah" at the top of the page.</li>
-    <li>Click on "Select Surah" to guess the surah.</li>
+    <li>{{_("Select the \"Start Surah\" and \"End Surah\" at the top of the page.")}}</li>
+    <li>{{_("Click on \"Select Surah\" to guess the surah.")}}</li>
     {% if session['easy_mode'] %}
-      <li>Click on the "Hint" button to add another ayah to make it easier to guess.</li>
-      <li>Click on the "Skip" button to move onto the next ayah if you can't figure out the answer.</li>
+      <li>{{_("Click on the \"Hint\" button to add another ayah to make it easier to guess.")}}</li>
+      <li>{{_("Click on the \"Skip\" button to move onto the next ayah if you can't figure out the answer.")}}</li>
     {% else %}
-      <li>Click on the "Hint" button to add a word to the phrase to make it easier to guess.</li>
-      <li>Click on the "Skip" button to move onto the next phrase if you can't figure out the answer.</li>
+      <li>{{_("Click on the \"Hint\" button to add a word to the phrase to make it easier to guess.")}}</li>
+      <li>{{_("Click on the \"Skip\" button to move onto the next phrase if you can't figure out the answer.")}}</li>
     {% endif %}
   </ol>
 </div>
 
-<p style="margin-top:10px"><i>For any issues, feedback, or feature requests, please email qurangames1[@]gmail[.]com.</i></p>
+<p style="margin-top:10px"><i>{{_("For any issues, feedback, or feature requests, please email")}} qurangames1[@]gmail[.]com.</i></p>
 
 
 <script>
