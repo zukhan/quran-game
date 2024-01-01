@@ -35,6 +35,9 @@ phrase_to_ayah_num = {}
 # { '1:1': 'Guide us to the straight path -' }
 ayah_num_to_translation = {}
 
+# { 'Language:': 'اللغة:' }
+template_arabic_translation = {}
+
 basmalah = 'بِسْمِ اللَّهِ الرَّحْمَـٰنِ الرَّحِيمِ'
 
 #
@@ -71,6 +74,15 @@ def populate_juz_maps():
             ayah_range = tokens[1].split('-')
 
             juz_num_to_ayah_range[juz_num] = (ayah_range[0], ayah_range[1])
+
+#
+# This function populates the arabic translation map 
+#
+def populate_arabic_translation():
+    with open("resources/arabic_translation.csv") as file:
+        for line in file:
+            tokens = line.strip().rsplit(',', 1)
+            template_arabic_translation[tokens[0]] = tokens[1]
 
 #
 # Given an 'ayah_range' tuple (e.g. '(2:52, 3:20)') and a 'target_ayah_num'
@@ -295,10 +307,14 @@ def dump_lookup_maps_to_file():
     with open(f"{dir}/phrase_to_ayah_num.json", 'w') as file:
         sorted_phrase_to_ayah_num = dict(sorted(phrase_to_ayah_num.items()))
         file.write(json.dumps(sorted_phrase_to_ayah_num, ensure_ascii=False, indent=2))
+    
+    with open(f"{dir}/arabic_translation.json", 'w') as file:
+        file.write(json.dumps(template_arabic_translation,  ensure_ascii=False, indent=2))
 
 populate_surah_names()
 populate_arabic_surah_names()
 populate_juz_maps()
 parse_quran()
 parse_translation()
+populate_arabic_translation()
 dump_lookup_maps_to_file()

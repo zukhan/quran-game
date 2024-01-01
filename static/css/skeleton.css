@@ -445,3 +445,7 @@ there.
   -moz-text-align-last: right;
   direction: rtl;
 }
+
+.arabic td {
+  padding-left: 5px;
+}

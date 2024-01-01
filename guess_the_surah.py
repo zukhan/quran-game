@@ -54,6 +54,18 @@ surah_name_ar_to_en = {}
 # { '1 Al-Fatihah': '١ الفاتحة' }
 surah_name_en_to_ar = {}
 
+# { 'Language:': 'اللغة:' }
+arabic_translation = {}
+
+#
+# Returns the translated 'string', or 'string' itself if no translation found
+#
+def _(string):
+    language = "arabic" if session['arabic_mode'] else "english"
+    if language not in ["arabic"]:
+        return string
+    return arabic_translation.get(string, string)
+
 #
 # Adds another ayah before the current ayah
 #
@@ -64,7 +76,7 @@ def prefix_ayah(phrase, surah_ayah_num):
     prev_ayah_num = ayah_num_to_prev_ayah_num.get(surah_ayah_num)
 
     if not prev_ayah_num:
-        session['result'] = "No more hints. Already at the beginning of the surah!"
+        session['result'] = _("No more hints. Already at the beginning of the surah!")
         session['result_color'] = 'red'
 
         return (phrase, surah_ayah_num)
@@ -109,7 +121,7 @@ def add_word_to_phrase(phrase, ayah_num, word_idx):
     prev_ayah_num = ayah_num_to_prev_ayah_num.get(ayah_num)
 
     if not prev_ayah_num:
-        session['result'] = "No more hints. Already at the beginning of the surah!"
+        session['result'] = _("No more hints. Already at the beginning of the surah!")
         session['result_color'] = 'yellow'
 
         return (phrase, ayah_num, word_idx)
@@ -207,7 +219,7 @@ def render():
     surah_names = get_surah_names()
     surah_map = create_surah_name_to_num_map()
     return render_template("home.html", surah_names=surah_names, surah_map=surah_map, \
-                           language=language, start=start, end=end)
+                           language=language, start=start, end=end, _=_)
 
 def build_quran_com_link(unique_phrase):
     surah_num = session['surah_num']
@@ -307,28 +319,28 @@ def post():
         session['end_surah'] = form_end
         load_new_phrase()
 
-    if request.form.get('skip') == 'Skip':
+    if request.form.get('skip') == _('Skip'):
         surah_name = get_surah_name()
-        session['result'] = f"« {unique_phrase} » was from {quran_com_link} ( {surah_name} )"
+        session['result'] = f"« {unique_phrase} » {_('was from')} {quran_com_link} ( {surah_name} )"
         session['result_color'] = "red"
         load_new_phrase()
 
-    elif request.form.get('guess') == 'Guess' or guessed_surah != "Select Surah":
+    elif request.form.get('guess') == _('Guess') or guessed_surah != "Select Surah":
         session['guess'] = guessed_surah
 
         if guessed_surah.strip() == session['surah_name']:
             score = session.get('score')
             session['score'] = score + 1 if score else 1
             surah_name = get_surah_name()
-            session['result'] = f"Correct! Good job! « {unique_phrase} » is from {quran_com_link} ( {surah_name} )"
+            session['result'] = f"{_('Correct! Good job!')} « {unique_phrase} » {_('is from')} {quran_com_link} ( {surah_name} )"
             session['result_color'] = "green"
             session['guess'] = session['start_surah']
             load_new_phrase()
         else:
-            session['result'] = "Incorrect. Try again."
+            session['result'] = _("Incorrect. Try again.")
             session['result_color'] = "red"
 
-    elif request.form.get('hint') == 'Hint':
+    elif request.form.get('hint') == _('Hint'):
 
         word_idx = None
 
@@ -346,7 +358,7 @@ def post():
         session['hint_ayah_num'] = hint_ayah_num
         session['word_idx'] = word_idx
 
-    elif request.form.get('translate') == 'Translate':
+    elif request.form.get('translate') == _('Translate'):
         session['translation'] = ayah_num_to_translation[session["surah_ayah_num"]]
 
     return render()
@@ -366,7 +378,7 @@ def bootstrap_indexes():
     global juz_num_to_ayah_range, ayah_num_to_prev_ayah_num, \
             surah_num_to_ayah_nums, surah_num_to_name, ayah_num_to_ayah, \
             surah_num_to_arabic_name, surah_num_to_phrases, phrase_to_ayah_num, \
-            ayah_num_to_translation
+            ayah_num_to_translation, arabic_translation
 
     with open(f"{dir}/juz_num_to_ayah_range.json") as file:
         juz_num_to_ayah_range = json.loads(file.read())
@@ -394,6 +406,9 @@ def bootstrap_indexes():
 
     with open(f"{dir}/phrase_to_ayah_num.json", encoding="utf_8") as file:
         phrase_to_ayah_num = json.loads(file.read())
+    
+    with open(f"{dir}/arabic_translation.json",  encoding="utf_8") as file:
+        arabic_translation = json.loads(file.read())
 
     for surah_num in range(1, 115):
         en_surah_name = surah_num_to_name[str(surah_num)]
