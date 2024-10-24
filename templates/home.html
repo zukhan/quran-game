@@ -58,7 +58,7 @@
   </table>
 
   <strong><p>{{_("Which surah is this from?")}}</p></strong>
-  <h4>{{ session['phrase'] }}</h4>
+  <p class="quran-text">{{ session['phrase'] }}</p>
 
   {% if session['translation'] %}
     <p>{{ session['translation']|safe }}</p>
@@ -70,11 +70,16 @@
       if surah_map[surah_name]|int >= surah_map[session['start_surah']]|int and
           surah_map[surah_name]|int <= surah_map[session['end_surah']]|int
     %}
-      <option  value="{{surah_name}}">{{surah_name}}</option>
+      <option value="{{surah_name}}">{{surah_name}}</option>
     {% endfor %}
   </select>
   <br />
-  <class style="color:{{ session['result_color'] }} ">{{ session['result']|safe }}</class><br />
+  <span style="color: {{ session['result_color'] }};">
+    <span class="quran-text-small">
+    {{ session['result']|safe }}
+    </span>
+  </span>
+  <br />
   <noscript><input type="submit" value="{{_('Guess')}}" name="guess"/></noscript>
   <input type="submit" value="{{_('Hint')}}" name="hint"/>
   {% if not session['arabic_mode'] %}

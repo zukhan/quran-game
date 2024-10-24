@@ -1,5 +1,25 @@
 /*! normalize.css v3.0.2 | MIT License | git.io/normalize */
 
+@font-face {
+    font-family: 'UthmanicHafs';
+    src: url('../fonts/KFGQPC-Uthmanic-Script-HAFS-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.quran-text {
+    font-family: 'UthmanicHafs';
+    font-size: 24px; /* Adjust the font size as needed */
+    line-height: 1.5; /* Optional: Adjust line-height for better readability */
+    margin-bottom: 15px;
+}
+
+.quran-text-small {
+    font-family: 'UthmanicHafs';
+    font-size: 1.3em; /* Adjust the font size as needed */
+    line-height: 1.5; /* Optional: Adjust line-height for better readability */
+}
+
 /**
  * 1. Set default font family to sans-serif.
  * 2. Prevent iOS text size adjust after orientation change, without disabling
