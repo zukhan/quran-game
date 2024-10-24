@@ -282,6 +282,8 @@ def get():
     score = session.get('score')
     session['score'] = score if score else 0
 
+    session['result-pre'] = ''
+    session['result-arabic'] = ''
     session['result'] = ''
     load_session_start_end_surah()
     load_new_phrase()
@@ -304,6 +306,8 @@ def post():
     form_end = request.form.get('end_surah')
     guessed_surah = request.form.get('surah')
 
+    session['result-pre'] = ''
+    session['result-arabic'] = ''
     session['result'] = ''
 
     unique_phrase = session.get('unique_phrase')
@@ -321,7 +325,8 @@ def post():
 
     if request.form.get('skip') == _('Skip'):
         surah_name = get_surah_name()
-        session['result'] = f"« {unique_phrase} » {_('was from')} {quran_com_link} ( {surah_name} )"
+        session['result-arabic'] = f"« {unique_phrase} » "
+        session['result'] = f"{_('was from')} {quran_com_link} ( {surah_name} )"
         session['result_color'] = "red"
         load_new_phrase()
 
@@ -332,7 +337,9 @@ def post():
             score = session.get('score')
             session['score'] = score + 1 if score else 1
             surah_name = get_surah_name()
-            session['result'] = f"{_('Correct! Good job!')} « {unique_phrase} » {_('is from')} {quran_com_link} ( {surah_name} )"
+            session['result-pre'] = f"{_('Correct! Good job!')} "
+            session['result-arabic'] = f"« {unique_phrase} » "
+            session['result'] = f"{_('is from')} {quran_com_link} ( {surah_name} )"
             session['result_color'] = "green"
             session['guess'] = session['start_surah']
             load_new_phrase()

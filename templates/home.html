@@ -75,9 +75,9 @@
   </select>
   <br />
   <span style="color: {{ session['result_color'] }};">
-    <span class="quran-text-small">
+    {{ session['result-pre']|safe }}
+    <span class="quran-text-small">{{ session['result-arabic']|safe }}</span>
     {{ session['result']|safe }}
-    </span>
   </span>
   <br />
   <noscript><input type="submit" value="{{_('Guess')}}" name="guess"/></noscript>
