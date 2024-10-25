@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rasmizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/skeleton.css') }}">
+    <style>
+        /* Custom styles for Rasm Converter */
+        .container {
+            margin-top: 50px;
+            text-align: center;
+        }
+        .form-container {
+            margin-top: 30px;
+        }
+        textarea {
+            width: 100%;
+            height: auto; /* Allow automatic resizing */
+            min-height: 50px; /* Set the initial minimum height */
+            padding-top: 18px; /* Adjust padding to vertically center the placeholder */
+            padding-bottom: 18px; /* Ensure even padding for centering */
+            resize: none; /* Disable manual resizing */
+            overflow: hidden; /* Prevent scrollbars */
+            font-size: 16px; /* Default font size */
+            box-sizing: border-box; /* Include padding in width and height calculations */
+        }
+        /* Style for placeholder text */
+        textarea::placeholder {
+            font-size: 14px; /* Set smaller font size for placeholder */
+            color: #888; /* Optional: Set a lighter color for better contrast */
+        }
+        .result-container {
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px; /* Add some space below the result */
+        }
+        .back-link {
+            margin-top: 20px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Rasmizer</h1>
+        <p>Enter Arabic text below to remove tashkeel and dots.</p>
+
+        {% if result %}
+        <div class="row result-container">
+            <p class="rasm-text">{{ result }}</p>
+        </div>
+        {% endif %}
+        
+        <div class="row form-container">
+            <form method="POST" class="twelve columns">
+                <textarea id="arabicTextBox" dir="rtl" name="text" rows="1" placeholder="...Enter Arabic text here" style="font-size: {{ request.form.get('font_size', '16px') }};">{{ request.form.get('text', '') }}</textarea>
+                <input type="hidden" name="font_size" id="fontSizeInput" value="{{ request.form.get('font_size', '16px') }}">
+                <br>
+                <input type="submit" value="Convert" class="button-primary">
+            </form>
+        </div>
+
+        <a href="/" class="back-link">Back to Guess the Surah Game</a>
+    </div>
+
+    <script>
+        // Function to adjust the height of the textarea
+        function autoResizeTextarea(textarea) {
+            textarea.style.height = 'auto'; // Reset height
+            textarea.style.height = textarea.scrollHeight + 'px'; // Set new height
+        }
+
+        // Get the textarea element
+        const arabicTextBox = document.getElementById('arabicTextBox');
+        const fontSizeInput = document.getElementById('fontSizeInput');
+
+        // Event listeners for input and paste
+        arabicTextBox.addEventListener('input', function() {
+            autoResizeTextarea(this);
+        });
+
+        arabicTextBox.addEventListener('paste', function() {
+            this.style.fontSize = '24px'; // Set font size to 24px on paste
+            fontSizeInput.value = '24px'; // Update the hidden input field
+            setTimeout(() => autoResizeTextarea(this), 0); // Delay to ensure content is pasted
+        });
+
+        // Initial resize for any pre-filled content
+        autoResizeTextarea(arabicTextBox);
+    </script>
+</body>
+</html>
+

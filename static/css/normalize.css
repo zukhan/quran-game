@@ -7,6 +7,12 @@
     font-style: normal;
 }
 
+.rasm-text {
+    margin-top: 24px;
+    font-size: 24px; /* Adjust the font size as needed */
+    line-height: 1.5; /* Optional: Adjust line-height for better readability */
+}
+
 .quran-text {
     font-family: 'UthmanicHafs';
     font-size: 24px; /* Adjust the font size as needed */

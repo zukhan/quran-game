@@ -17,6 +17,7 @@ import datetime
 import subprocess
 
 from flask import *
+from rasm_utils import convert_to_rasm
 
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
@@ -265,6 +266,17 @@ def before_request():
 
     easy_mode = session.get('easy_mode')
     session['easy_mode'] = True if easy_mode == None else easy_mode
+
+
+@app.route("/rasm", methods=['GET', 'POST'])
+def rasm_converter():
+    result = ""
+    if request.method == 'POST':
+        text = request.form.get('text')
+        if text:
+            result = convert_to_rasm(text)
+    return render_template('rasm.html', result=result)
+
 
 @app.route("/", methods=['GET'])
 def index():
