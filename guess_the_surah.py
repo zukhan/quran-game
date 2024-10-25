@@ -242,7 +242,7 @@ def convert_surah_names(arabic_mode):
 
 def get_surah_name():
     surah_name_tokens = session['surah_name'].split(' ')
-    return surah_name_tokens[len(surah_name_tokens) - 1]
+    return ' '.join(surah_name_tokens[1:])
 
 @app.before_request
 def before_request():
