@@ -246,6 +246,13 @@ def get_surah_name():
     return ' '.join(surah_name_tokens[1:])
 
 @app.before_request
+def redirect_non_www():
+    if request.url.startswith('http://qurangame.com/rasm'):
+        return redirect('https://www.qurangame.com/rasm', code=301)
+    if request.url.startswith('http://qurangame.com'):
+        return redirect('https://www.qurangame.com', code=301)
+
+@app.before_request
 def before_request():
     session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(minutes=30)
