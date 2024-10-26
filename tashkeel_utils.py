@@ -31,9 +31,11 @@ letter_placement = {
 }
 
 def strip_tashkeel(text):
+    """Remove tashkeel from the given text."""
     return tashkeel_pattern.sub('', text)
 
 def get_contextual_form(char, prev_char, next_char):
+    """Get the contextual form of a character based on its position in the text."""
     if char not in letter_placement:
         return char
 
@@ -46,8 +48,8 @@ def get_contextual_form(char, prev_char, next_char):
 
     return letter_placement[char][form_type]
 
-def remove_tashkeel(text):
-    text = strip_tashkeel(text)
+def remove_dots(text):
+    """Remove dots from the given text based on dotless_map and letter placement."""
     stripped_text = []
     length = len(text)
 
@@ -62,4 +64,9 @@ def remove_tashkeel(text):
 
         stripped_text.append(converted_char)
     return ''.join(stripped_text)
+
+def remove_tashkeel(text):
+    """Remove both tashkeel and optionally handle dot removal if needed."""
+    text = strip_tashkeel(text)
+    return text
 

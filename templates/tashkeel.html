@@ -53,28 +53,39 @@
             margin-bottom: 20px; /* Add some space below the result */
         }
         .back-link {
-            margin-top: 20px;
             display: block;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .checkbox-container label {
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Tashkeel Remover</h1>
-        <p>Enter Arabic text below to remove tashkeel and dots.</p>
+        <p>Enter Arabic text below to remove tashkeel.</p>
 
         {% if result %}
         <div class="row result-container">
             <p class="rasm-text">{{ result }}</p>
         </div>
         {% endif %}
-        
+
         <div class="row form-container">
             <form method="POST" class="twelve columns">
                 <textarea id="arabicTextBox" dir="rtl" name="text" rows="1" placeholder="...Enter Arabic text here" style="font-size: {{ request.form.get('font_size', '16px') }};">{{ request.form.get('text', '') }}</textarea>
                 <input type="hidden" name="font_size" id="fontSizeInput" value="{{ request.form.get('font_size', '16px') }}">
                 <br>
                 <input type="submit" value="Convert" class="button-primary">
+                <div class="checkbox-container">
+                    <input type="checkbox" id="removeDots" name="remove_dots" {% if request.form.get('remove_dots') %}checked{% endif %}>
+                    <label for="removeDots">Remove dots</label>
+                </div>
             </form>
         </div>
 

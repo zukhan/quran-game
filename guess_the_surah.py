@@ -17,7 +17,7 @@ import datetime
 import subprocess
 
 from flask import *
-from tashkeel_utils import remove_tashkeel
+from tashkeel_utils import remove_dots, strip_tashkeel
 
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
@@ -267,17 +267,23 @@ def before_request():
     easy_mode = session.get('easy_mode')
     session['easy_mode'] = True if easy_mode == None else easy_mode
 
+
 @app.route('/rasm')
 def redirect_to_tashkeel():
     return redirect('/tashkeel', code=301)
 
-@app.route("/tashkeel", methods=['GET', 'POST'])
+@app.route('/tashkeel', methods=['GET', 'POST'])
 def tashkeel_remover():
     result = ""
     if request.method == 'POST':
         text = request.form.get('text')
+        remove_dots_option = 'remove_dots' in request.form
         if text:
-            result = remove_tashkeel(text)
+            # Always remove tashkeel by default
+            result = strip_tashkeel(text)
+            # Optionally remove dots if the checkbox is checked
+            if remove_dots_option:
+                result = remove_dots(result)
     return render_template('tashkeel.html', result=result)
 
 
