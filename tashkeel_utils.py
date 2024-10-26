@@ -1,4 +1,4 @@
-# rasm_utils.py
+# tashkeel_utils.py
 import re
 
 tashkeel_pattern = re.compile(r'[\u064B-\u0652\u0670]')
@@ -30,7 +30,7 @@ letter_placement = {
     'ن': {'beginning': 'ٮ', 'middle': 'ٮ', 'end': 'ں', 'alone': 'ں'},
 }
 
-def remove_tashkeel(text):
+def strip_tashkeel(text):
     return tashkeel_pattern.sub('', text)
 
 def get_contextual_form(char, prev_char, next_char):
@@ -46,9 +46,9 @@ def get_contextual_form(char, prev_char, next_char):
 
     return letter_placement[char][form_type]
 
-def convert_to_rasm(text):
-    text = remove_tashkeel(text)
-    rasm_text = []
+def remove_tashkeel(text):
+    text = strip_tashkeel(text)
+    stripped_text = []
     length = len(text)
 
     for i, char in enumerate(text):
@@ -60,6 +60,6 @@ def convert_to_rasm(text):
         if converted_char in letter_placement:
             converted_char = get_contextual_form(converted_char, prev_char, next_char)
 
-        rasm_text.append(converted_char)
-    return ''.join(rasm_text)
+        stripped_text.append(converted_char)
+    return ''.join(stripped_text)
 

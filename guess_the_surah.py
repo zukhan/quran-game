@@ -17,7 +17,7 @@ import datetime
 import subprocess
 
 from flask import *
-from rasm_utils import convert_to_rasm
+from tashkeel_utils import remove_tashkeel
 
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
@@ -246,13 +246,6 @@ def get_surah_name():
     return ' '.join(surah_name_tokens[1:])
 
 @app.before_request
-def redirect_non_www():
-    if request.url.startswith('http://qurangame.com/rasm'):
-        return redirect('https://www.qurangame.com/rasm', code=301)
-    if request.url.startswith('http://qurangame.com'):
-        return redirect('https://www.qurangame.com', code=301)
-
-@app.before_request
 def before_request():
     session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(minutes=30)
@@ -274,15 +267,18 @@ def before_request():
     easy_mode = session.get('easy_mode')
     session['easy_mode'] = True if easy_mode == None else easy_mode
 
+@app.route('/rasm')
+def redirect_to_tashkeel():
+    return redirect('/tashkeel', code=301)
 
-@app.route("/rasm", methods=['GET', 'POST'])
-def rasm_converter():
+@app.route("/tashkeel", methods=['GET', 'POST'])
+def tashkeel_remover():
     result = ""
     if request.method == 'POST':
         text = request.form.get('text')
         if text:
-            result = convert_to_rasm(text)
-    return render_template('rasm.html', result=result)
+            result = remove_tashkeel(text)
+    return render_template('tashkeel.html', result=result)
 
 
 @app.route("/", methods=['GET'])

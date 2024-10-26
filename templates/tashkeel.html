@@ -13,17 +13,15 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta property="og:title" content="Rasmizer">
-    <meta property="og:description" content="Remove dots and/or tashkeel from any Arabic text.">
-    <meta property="og:image" content="https://www.aljazeera.com/wp-content/uploads/2015/07/28cecc4e101a4c7496f36f8deb7be627_18.jpeg?quality=80">
-    <meta property="og:url" content="https://www.qurangame.com/rasm">
+    <meta property="og:title" content="Tashkeel Remover">
+    <meta property="og:description" content="Remove tashkeel and/or dots from any Arabic text.">
+    <meta property="og:url" content="https://www.qurangame.com/tashkeel">
     <meta property="og:type" content="website">
 
-    <title>Rasmizer</title>
+    <title>Tashkeel Remover</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/skeleton.css') }}">
     <style>
-        /* Custom styles for Rasm Converter */
         .container {
             margin-top: 50px;
             text-align: center;
@@ -62,7 +60,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Rasmizer</h1>
+        <h1>Tashkeel Remover</h1>
         <p>Enter Arabic text below to remove tashkeel and dots.</p>
 
         {% if result %}
