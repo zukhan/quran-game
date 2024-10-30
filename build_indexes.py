@@ -213,8 +213,17 @@ def parse_quran():
         populate_phrases(ayah_words, ayah_phrases)
 
         for ayah_phrase in ayah_phrases:
-            if ayah_phrase in phrase_to_ayah_num:
+            # In Arabic, the conjunction وَ (and) is attached to following word
+            # without a space. We need to account for that when determining
+            # whether it is a unique phrase or not. For example, without the
+            # explicit check, وَإِنَّهُمَا and إِنَّهُمَا would be considered unique
+            # phrases since they each appear only once in the Qur'an, but they
+            # are not unique if you ignore the وَ.
+            phrase_with_waw = f"وَ{ayah_phrase}"
+            if ayah_phrase in phrase_to_ayah_num or \
+                    phrase_with_waw in phrase_to_ayah_num:
                 non_unique_phrases.add(ayah_phrase)
+                non_unique_phrases.add(phrase_with_waw)
             else:
                 phrase_to_ayah_num[ayah_phrase] = ayah_num
 
@@ -225,7 +234,7 @@ def parse_quran():
 
     # Remove duplicates
     for non_unique_phrase in non_unique_phrases:
-        del phrase_to_ayah_num[non_unique_phrase]
+        phrase_to_ayah_num.pop(non_unique_phrase, None)
 
     # {'2:30': 'الْعَالَمِينَ'}
     ayah_num_to_phrases = {}
