@@ -247,6 +247,9 @@ def get_surah_name():
 
 @app.before_request
 def before_request():
+    if request.host == "qurangame.com":
+        return redirect("https://www.qurangame.com" + request.path, code=301)
+
     session.permanent = True
     app.permanent_session_lifetime = datetime.timedelta(minutes=30)
     session.modified = True
