@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zakat Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/normalize.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/skeleton.css') }}">
+    <style>
+        .container {
+            margin-top: 50px;
+            text-align: center;
+        }
+        .form-container {
+            margin-top: 15px;
+            margin-bottom: 0px;
+        }
+        .result-container {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .form.twelve.columns {
+            margin-bottom: 0px;
+        }
+        .result-container p {
+            margin-bottom: 0px;
+        }
+        .back-link {
+            display: block;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Zakat Calculator</h1>
+        <p>Enter the number of camels (niṣāb) to calculate zakat on.</p>
+
+        {% if result %}
+        <div class="row result-container">
+            <p>{{ result }}</p>
+        </div>
+        {% endif %}
+
+        <div class="row form-container">
+            <form method="POST" class="twelve columns">
+                <input 
+                    type="number" 
+                    name="camel_count" 
+                    min="0" 
+                    placeholder="Enter number of camels" 
+                    required
+                    value="{{ request.form.get('camel_count', '') }}"
+                    style="text-align: center;"> 
+                <br>
+                <input type="submit" value="Calculate Zakat" class="button-primary">
+            </form>
+            <a href="/" class="back-link">Back to Guess the Surah Game</a>
+        </div>
+    </div>
+</body>
+</html>
+

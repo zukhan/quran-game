@@ -18,6 +18,7 @@ import subprocess
 
 from flask import *
 from tashkeel_utils import remove_dots, strip_tashkeel
+from zakat_utils import calculate_zakat
 
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
@@ -269,6 +270,18 @@ def before_request():
 
     easy_mode = session.get('easy_mode')
     session['easy_mode'] = True if easy_mode == None else easy_mode
+
+
+@app.route('/zakat', methods=['GET', 'POST'])
+def zakat_calculator():
+    result = ""
+    if request.method == 'POST':
+        try:
+            camel_count = int(request.form.get('camel_count'))
+            result = calculate_zakat(camel_count)
+        except ValueError:
+            result = "Please enter a valid integer number of camels."
+    return render_template('zakat_calculator.html', result=result)
 
 
 @app.route('/rasm')
