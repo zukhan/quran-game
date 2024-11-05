@@ -40,7 +40,7 @@
 
         {% if result %}
         <div class="row result-container">
-            <p>{{ result }}</p>
+            <p>{{ result | safe }}</p>
         </div>
         {% endif %}
 

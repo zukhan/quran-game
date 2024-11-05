@@ -279,6 +279,7 @@ def zakat_calculator():
         try:
             camel_count = int(request.form.get('camel_count'))
             result = calculate_zakat(camel_count)
+            result = result.replace(" + ", " +<br>")
         except ValueError:
             result = "Please enter a valid integer number of camels."
     return render_template('zakat_calculator.html', result=result)
